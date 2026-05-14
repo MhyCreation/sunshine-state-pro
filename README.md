@@ -7,7 +7,7 @@ This repo is **Phase 1**: the architectural foundation. It boots, it's pretty, i
 ## What's in Phase 1
 
 - ✅ Next.js 15 (App Router) + React 19 + TypeScript
-- ✅ Tailwind CSS v4 with the Sunshine design system (navy + gold)
+- ✅ Tailwind CSS v3 with the Sunshine design system (navy + gold)
 - ✅ Supabase: Auth + Postgres + Row Level Security
 - ✅ Multi-tenant schema with 13 tables and RLS policies on every one
 - ✅ Marketing landing page (hero, features, pricing, FAQ, CTA)
@@ -38,7 +38,7 @@ The schema for these IS in place — so when we build the features, we already h
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 15 (App Router, Server Components, Server Actions) |
-| UI | Tailwind CSS v4, shadcn-style primitives, Framer Motion |
+| UI | Tailwind CSS v3, shadcn-style primitives, Framer Motion |
 | Auth | Supabase Auth (SSR helpers) |
 | DB | Supabase Postgres + RLS |
 | State | Zustand |
@@ -93,7 +93,6 @@ supabase/
   migrations/
     0001_initial_schema.sql   ← all tables
     0002_rls_policies.sql     ← RLS for multi-tenancy
-    0003_seed.sql             ← optional demo data
 middleware.ts           ← session refresh on every request
 ```
 
