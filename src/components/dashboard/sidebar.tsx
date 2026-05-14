@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Calendar, Users, FileText, Route, Sparkles,
-  BarChart3, Settings, LogOut,
+  BarChart3, Settings, LogOut, KanbanSquare,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { logoutAction } from "@/lib/actions/auth";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/dashboard/schedule", icon: Calendar, label: "Schedule" },
+  { href: "/dashboard/pipeline", icon: KanbanSquare, label: "Pipeline" },
   { href: "/dashboard/customers", icon: Users, label: "Customers" },
   { href: "/dashboard/invoices", icon: FileText, label: "Invoices" },
   { href: "/dashboard/routes", icon: Route, label: "Routes" },
