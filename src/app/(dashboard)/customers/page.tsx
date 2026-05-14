@@ -1,7 +1,7 @@
 import { getCustomers } from "@/lib/actions/customers";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Users, Plus, Search } from "lucide-react";
-import Link from "next/link";
+import { Users, Search } from "lucide-react";
+import { NewCustomerButton } from "@/components/dashboard/new-customer-modal";
 
 const STATUS_STYLES = {
   lead:     "bg-amber-50 text-amber-700 border-amber-200",
@@ -27,13 +27,7 @@ export default async function CustomersPage({
             {customers.length} total{q ? ` matching "${q}"` : ""}
           </p>
         </div>
-        <Link
-          href="/dashboard/customers/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-navy-800 text-white text-sm font-medium hover:bg-navy-700 transition"
-        >
-          <Plus className="h-4 w-4" />
-          Add customer
-        </Link>
+        <NewCustomerButton />
       </header>
 
       <div className="bg-white rounded-lg border border-navy-100 overflow-hidden">
