@@ -105,6 +105,74 @@ export async function getRecentTransactions(limit = 20) {
   return data ?? [];
 }
 
+export async function purchaseGoldCoins(
+  packId: string
+): Promise<{ success: boolean; goldAwarded?: number; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  // Pack definitions (must match client-side PACKS)
+  const PACKS: Record<string, { scCost: number; gcTotal: number; label: string }> = {
+    starter:  { scCost: 0.10, gcTotal:   5_000, label: "Starter Bundle" },
+    classic:  { scCost: 0.25, gcTotal:  15_000, label: "Classic Bundle" },
+    popular:  { scCost: 0.50, gcTotal:  35_000, label: "Popular Bundle" },
+    premium:  { scCost: 1.00, gcTotal:  80_000, label: "Premium Bundle" },
+    elite:    { scCost: 2.50, gcTotal: 225_000, label: "Elite Bundle" },
+    jackpot:  { scCost: 5.00, gcTotal: 500_000, label: "Jackpot Bundle" },
+  };
+
+  const pack = PACKS[packId];
+  if (!pack) return { success: false, error: "Invalid pack" };
+
+  const { data: wallet, error: walletError } = await supabase
+    .from("wallets")
+    .select("gold_coins, sweeps_coins")
+    .eq("user_id", user.id)
+    .single();
+
+  if (walletError || !wallet) return { success: false, error: "Wallet not found" };
+
+  const currentSc = parseFloat(String(wallet.sweeps_coins));
+  if (currentSc < pack.scCost) {
+    return { success: false, error: "Insufficient Sweeps Coins" };
+  }
+
+  const newSc = parseFloat((currentSc - pack.scCost).toFixed(2));
+  const newGc = wallet.gold_coins + pack.gcTotal;
+
+  const { error: updateError } = await supabase
+    .from("wallets")
+    .update({ gold_coins: newGc, sweeps_coins: newSc })
+    .eq("user_id", user.id);
+
+  if (updateError) return { success: false, error: updateError.message };
+
+  // Two transaction records: SC deducted, GC credited
+  await supabase.from("transactions").insert([
+    {
+      user_id: user.id,
+      type: "purchase",
+      currency: "sweeps",
+      amount: -pack.scCost,
+      balance_after: newSc,
+      description: `${pack.label} — SC spent`,
+    },
+    {
+      user_id: user.id,
+      type: "purchase",
+      currency: "gold",
+      amount: pack.gcTotal,
+      balance_after: newGc,
+      description: `${pack.label} — GC received`,
+    },
+  ]);
+
+  revalidatePath("/shop");
+  revalidatePath("/wallet");
+  return { success: true, goldAwarded: pack.gcTotal };
+}
+
 export async function getStats() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

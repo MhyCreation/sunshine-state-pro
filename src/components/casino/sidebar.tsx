@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid, Spade, Diamond, Club, Heart,
-  Wallet, LogOut, User, Trophy,
+  Wallet, LogOut, User, Trophy, ShoppingBag,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { logoutAction } from "@/lib/actions/auth";
@@ -18,6 +18,7 @@ const nav = [
   { href: "/games/poker", icon: Club, label: "Poker" },
   { href: "/games/roulette", icon: Heart, label: "Roulette" },
   { href: "/wallet", icon: Wallet, label: "Wallet" },
+  { href: "/shop", icon: ShoppingBag, label: "Coin Shop" },
 ];
 
 export function Sidebar({ userName }: { userName: string }) {
