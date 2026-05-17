@@ -7,3 +7,8 @@ out
 .DS_Store
 *.log
 .vercel
+
+# Mobile app
+mobile/node_modules/
+mobile/.expo/
+mobile/.env

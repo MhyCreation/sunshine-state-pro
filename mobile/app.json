@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "SunshineSpins",
+    "slug": "sunshine-spins",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "sunshinespins",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0f1117"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sunshinespins.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f1117"
+      },
+      "package": "com.sunshinespins.mobile"
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
