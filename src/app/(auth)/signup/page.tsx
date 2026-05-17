@@ -6,19 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/ui/logo";
 import { signupSchema, type SignupInput } from "@/lib/schemas";
 import { signupAction } from "@/lib/actions/auth";
-
-const industries = [
-  { value: "cleaning", label: "Cleaning" },
-  { value: "airbnb_turnover", label: "Airbnb turnover" },
-  { value: "pressure_washing", label: "Pressure washing" },
-  { value: "mobile_detailing", label: "Mobile detailing" },
-  { value: "landscaping", label: "Landscaping" },
-  { value: "home_services", label: "Home services" },
-  { value: "contracting", label: "Contracting" },
-  { value: "other", label: "Other" },
-];
 
 export default function SignupPage() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -26,7 +16,6 @@ export default function SignupPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { industry: "cleaning" },
   });
 
   const onSubmit = (data: SignupInput) => {
@@ -39,56 +28,51 @@ export default function SignupPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-semibold tracking-tight text-navy-800">
-        Start your free trial
-      </h1>
-      <p className="mt-2 text-sm text-navy-500">14 days. No credit card needed.</p>
+      <div className="md:hidden mb-8">
+        <Logo />
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-3.5">
+      <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Create account</h1>
+      <p className="mt-2 text-sm text-white/50">
+        Get <span className="text-gold-400 font-medium">10,000 GC</span> +{" "}
+        <span className="text-win font-medium">2.00 SC</span> free on signup.
+      </p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
         <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Your name</label>
-          <Input placeholder="Marcus Reyes" {...register("fullName")} />
-          {errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName.message}</p>}
+          <label className="text-xs font-medium text-white/60 mb-1.5 block">Username</label>
+          <Input placeholder="lucky_spinner_99" {...register("username")} />
+          {errors.username && <p className="text-xs text-lose mt-1">{errors.username.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Business name</label>
-          <Input placeholder="Reyes Pressure Washing" {...register("businessName")} />
-          {errors.businessName && <p className="text-xs text-red-600 mt-1">{errors.businessName.message}</p>}
+          <label className="text-xs font-medium text-white/60 mb-1.5 block">Email</label>
+          <Input type="email" placeholder="you@example.com" {...register("email")} />
+          {errors.email && <p className="text-xs text-lose mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Industry</label>
-          <select
-            {...register("industry")}
-            className="flex h-11 w-full rounded-md border border-navy-100 bg-white px-3.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
-          >
-            {industries.map((i) => (
-              <option key={i.value} value={i.value}>{i.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Work email</label>
-          <Input type="email" placeholder="you@company.com" {...register("email")} />
-          {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
-        </div>
-        <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Password</label>
+          <label className="text-xs font-medium text-white/60 mb-1.5 block">Password</label>
           <Input type="password" placeholder="At least 8 characters" {...register("password")} />
-          {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
+          {errors.password && <p className="text-xs text-lose mt-1">{errors.password.message}</p>}
         </div>
         {serverError && (
-          <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+          <div className="rounded-md bg-lose/10 border border-lose/30 px-3 py-2 text-xs text-lose">
             {serverError}
           </div>
         )}
         <Button type="submit" variant="gold" className="w-full" size="lg" disabled={pending}>
-          {pending ? "Creating workspace…" : "Create my workspace"}
+          {pending ? "Creating account…" : "Claim Free Coins & Play"}
         </Button>
       </form>
 
-      <p className="mt-5 text-sm text-navy-500 text-center">
+      <p className="mt-4 text-xs text-white/30 text-center leading-relaxed">
+        By signing up you confirm you are 18+ and agree to our Terms. No purchase necessary. Void where prohibited.
+      </p>
+
+      <p className="mt-4 text-sm text-white/50 text-center">
         Already have an account?{" "}
-        <Link href="/login" className="text-navy-800 font-medium hover:underline">Sign in</Link>
+        <Link href="/login" className="text-gold-400 font-medium hover:underline">
+          Sign in
+        </Link>
       </p>
     </div>
   );

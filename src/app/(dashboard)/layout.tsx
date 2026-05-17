@@ -1,29 +1,39 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { Sidebar } from "@/components/casino/sidebar";
+import { WalletLoader } from "@/components/casino/wallet-loader";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function CasinoLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Fetch the user's membership (RLS-protected; only their rows return)
-  const { data: membership } = await supabase
-    .from("business_members")
-    .select("full_name, role, businesses(name, slug)")
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("gold_coins, sweeps_coins")
     .eq("user_id", user.id)
+    .single();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
     .maybeSingle();
 
-  const name =
-    membership?.full_name ??
-    user.user_metadata?.full_name ??
+  const displayName =
+    profile?.username ??
+    user.user_metadata?.username ??
     user.email?.split("@")[0] ??
-    "there";
+    "Player";
 
   return (
-    <div className="flex min-h-screen bg-navy-50">
-      <Sidebar userName={name} />
-      <main className="flex-1 p-8">{children}</main>
+    <div className="flex min-h-screen bg-casino-900">
+      <WalletLoader
+        goldCoins={wallet?.gold_coins ?? 10000}
+        sweepsCoins={parseFloat(String(wallet?.sweeps_coins ?? "2.00"))}
+      />
+      <Sidebar userName={displayName} />
+      <main className="flex-1 p-6 md:p-8 overflow-auto">{children}</main>
     </div>
   );
 }

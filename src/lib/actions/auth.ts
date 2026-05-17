@@ -4,10 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { signupSchema, loginSchema, type SignupInput, type LoginInput } from "@/lib/schemas";
 import { redirect } from "next/navigation";
 
-function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
 export async function signupAction(input: SignupInput) {
   const parsed = signupSchema.safeParse(input);
   if (!parsed.success) {
@@ -16,12 +12,11 @@ export async function signupAction(input: SignupInput) {
 
   const supabase = await createClient();
 
-  // 1. Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName },
+      data: { username: parsed.data.username },
     },
   });
 
@@ -29,32 +24,15 @@ export async function signupAction(input: SignupInput) {
     return { error: authError?.message ?? "Could not create account" };
   }
 
-  // 2. Create business (RLS allows authenticated insert)
-  const slug = `${slugify(parsed.data.businessName)}-${Math.random().toString(36).slice(2, 6)}`;
-  const { data: business, error: bizError } = await supabase
-    .from("businesses")
-    .insert({
-      name: parsed.data.businessName,
-      slug,
-      industry: parsed.data.industry,
-    })
-    .select()
-    .single();
+  // Profile and wallet are created by the DB trigger; update username
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ username: parsed.data.username })
+    .eq("id", authData.user.id);
 
-  if (bizError || !business) {
-    return { error: bizError?.message ?? "Could not create business" };
-  }
-
-  // 3. Create owner membership (first-member exception in RLS allows this)
-  const { error: memberError } = await supabase.from("business_members").insert({
-    business_id: business.id,
-    user_id: authData.user.id,
-    role: "owner",
-    full_name: parsed.data.fullName,
-  });
-
-  if (memberError) {
-    return { error: memberError.message };
+  if (profileError) {
+    // Non-fatal — trigger may not have run yet if email confirmation is pending
+    console.error("Profile update error:", profileError.message);
   }
 
   redirect("/dashboard");

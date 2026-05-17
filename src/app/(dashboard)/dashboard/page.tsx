@@ -1,121 +1,166 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Sparkles, Bell, ArrowUpRight } from "lucide-react";
-import { RevenueChart } from "@/components/dashboard/revenue-chart";
+import { DailyBonusButton } from "@/components/casino/daily-bonus-button";
 
-export default async function DashboardPage() {
+const GAMES = [
+  {
+    href: "/games/slots",
+    emoji: "🎰",
+    name: "Lucky Spins",
+    subtitle: "Slots",
+    desc: "5 reels · 9 paylines · Wild bonus",
+    rtp: "96%",
+    hot: true,
+  },
+  {
+    href: "/games/blackjack",
+    emoji: "🃏",
+    name: "21 Royale",
+    subtitle: "Blackjack",
+    desc: "Beat the dealer · Blackjack 3:2",
+    rtp: "99.5%",
+    hot: false,
+  },
+  {
+    href: "/games/poker",
+    emoji: "♣️",
+    name: "Jacks or Better",
+    subtitle: "Video Poker",
+    desc: "5-card draw · Royal Flush 800×",
+    rtp: "99.5%",
+    hot: false,
+  },
+  {
+    href: "/games/roulette",
+    emoji: "🎡",
+    name: "Grand Roulette",
+    subtitle: "Roulette",
+    desc: "European wheel · 37 numbers",
+    rtp: "97.3%",
+    hot: false,
+  },
+];
+
+export default async function LobbyPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: membership } = await supabase
-    .from("business_members")
-    .select("full_name, businesses(name)")
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("gold_coins, sweeps_coins, lifetime_gc_won, lifetime_sc_won")
     .eq("user_id", user!.id)
+    .single();
+
+  const { data: recentSessions } = await supabase
+    .from("game_sessions")
+    .select("game, currency, bet_amount, win_amount, created_at")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const today = new Date().toISOString().split("T")[0];
+  const { data: dailyClaimed } = await supabase
+    .from("daily_bonuses")
+    .select("id")
+    .eq("user_id", user!.id)
+    .eq("claimed_date", today)
     .maybeSingle();
 
-  // @ts-expect-error supabase typed-join
-  const businessName = membership?.businesses?.name ?? "your business";
-  const firstName = (membership?.full_name ?? user?.email ?? "").split(" ")[0];
-
-  const today = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
-
-  const kpis = [
-    { label: "Revenue MTD", value: "$48,240", trend: "+18%", positive: true },
-    { label: "Bookings", value: "142", trend: "+6%", positive: true },
-    { label: "Unpaid invoices", value: "$3,420", trend: "8 outstanding", positive: false },
-    { label: "Retention", value: "94%", trend: "+2 pts", positive: true },
-  ];
-
-  const schedule = [
-    { time: "9:00 AM", title: "Pressure wash · 412 Ocean Dr", crew: "Crew A", color: "bg-emerald-500" },
-    { time: "11:30 AM", title: "Airbnb turnover · Coral Springs unit 4", crew: "Crew B", color: "bg-gold-400" },
-    { time: "2:00 PM", title: "Mobile detail · Mercedes GLE", crew: "Crew C", color: "bg-navy-300" },
-    { time: "4:30 PM", title: "Lawn maintenance · 1840 Palm Ave", crew: "Crew A", color: "bg-emerald-500" },
-  ];
-
   return (
-    <div className="max-w-7xl mx-auto">
-      <header className="flex items-center justify-between mb-8">
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-navy-800">
-            Good morning, {firstName} 👋
-          </h1>
-          <p className="text-sm text-navy-500 mt-1">
-            {today} · {businessName} · 6 crews in the field
-          </p>
+          <h1 className="font-display text-3xl font-bold text-white">Casino Lobby</h1>
+          <p className="text-white/50 text-sm mt-1">Choose your game and start playing</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="h-10 w-10 rounded-md bg-white border border-navy-100 flex items-center justify-center text-navy-600 hover:bg-navy-50 transition">
-            <Bell className="h-4 w-4" />
-          </button>
-        </div>
-      </header>
+        <DailyBonusButton alreadyClaimed={!!dailyClaimed} />
+      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-lg p-4 border border-navy-100">
-            <div className="text-xs text-navy-500">{kpi.label}</div>
-            <div className="mt-1 font-display text-2xl font-semibold text-navy-800">{kpi.value}</div>
-            <div className={`text-xs mt-1 ${kpi.positive ? "text-emerald-600" : "text-amber-600"}`}>
-              {kpi.trend}
-            </div>
+      {/* Wallet KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "GC Balance", value: `🪙 ${(wallet?.gold_coins ?? 0).toLocaleString()}` },
+          { label: "SC Balance", value: `💎 ${parseFloat(String(wallet?.sweeps_coins ?? "0")).toFixed(2)}` },
+          { label: "Lifetime GC Won", value: (wallet?.lifetime_gc_won ?? 0).toLocaleString() },
+          { label: "Lifetime SC Won", value: parseFloat(String(wallet?.lifetime_sc_won ?? "0")).toFixed(2) },
+        ].map((kpi) => (
+          <div key={kpi.label} className="bg-casino-800 rounded-xl border border-casino-600 p-4 card-shine">
+            <div className="text-2xl font-bold text-white font-mono">{kpi.value}</div>
+            <div className="text-white/40 text-xs mt-1">{kpi.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2 bg-white rounded-lg p-5 border border-navy-100">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-display font-semibold text-navy-800">Revenue trend</h2>
-            <span className="text-xs text-navy-500">Last 30 days</span>
-          </div>
-          <RevenueChart />
-        </div>
-
-        <div className="bg-navy-800 text-white rounded-lg p-5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-gold-400/20 blur-2xl" />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-7 w-7 rounded-md bg-gradient-gold flex items-center justify-center">
-                <Sparkles className="h-3.5 w-3.5 text-navy-800" />
-              </div>
-              <span className="text-xs font-medium">AI insights</span>
-            </div>
-            <p className="text-sm leading-relaxed text-white/85 mb-4">
-              12 customers haven't booked in 45+ days. Their average lifetime value is $840.
-              A targeted winback campaign could recover ~$4,000 this month.
-            </p>
-            <button className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-gradient-gold text-navy-800 text-xs font-semibold hover:brightness-105 transition">
-              Generate winback campaign
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg p-5 border border-navy-100">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-semibold text-navy-800">Today's schedule</h2>
-          <span className="text-xs text-navy-500">{schedule.length} jobs</span>
-        </div>
-        <div className="divide-y divide-navy-50">
-          {schedule.map((s) => (
-            <div key={s.time} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-              <div className="flex items-center gap-3">
-                <div className={`h-2 w-2 rounded-full ${s.color}`} />
-                <div>
-                  <div className="text-sm font-medium text-navy-800">{s.title}</div>
-                  <div className="text-xs text-navy-500 mt-0.5">{s.time} · {s.crew}</div>
+      {/* Games grid */}
+      <div>
+        <h2 className="text-white/60 text-xs font-medium uppercase tracking-wider mb-4">Games</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {GAMES.map((game) => (
+            <Link key={game.href} href={game.href} className="block group">
+              <div className="bg-casino-800 rounded-2xl border border-casino-600 p-5 hover:border-gold-400/40 transition-all hover:shadow-gold-glow group-hover:bg-casino-700 h-full flex flex-col gap-3">
+                <div className="flex items-start justify-between">
+                  <div className="text-4xl group-hover:scale-110 transition-transform">{game.emoji}</div>
+                  {game.hot && (
+                    <span className="text-[10px] bg-gold-400/20 text-gold-400 border border-gold-400/30 rounded-full px-2 py-0.5 font-medium">
+                      HOT
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-display text-lg font-semibold text-white group-hover:text-gold-400 transition-colors">
+                    {game.name}
+                  </div>
+                  <div className="text-white/40 text-xs mb-1">{game.subtitle}</div>
+                  <div className="text-white/60 text-xs">{game.desc}</div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/30">RTP: {game.rtp}</span>
+                  <span className="text-gold-400 group-hover:translate-x-0.5 transition-transform">Play →</span>
                 </div>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-navy-300" />
-            </div>
+            </Link>
           ))}
         </div>
       </div>
+
+      {/* Recent activity */}
+      {recentSessions && recentSessions.length > 0 && (
+        <div>
+          <h2 className="text-white/60 text-xs font-medium uppercase tracking-wider mb-4">Recent Games</h2>
+          <div className="bg-casino-800 rounded-xl border border-casino-600 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-casino-600">
+                  <th className="text-left text-white/40 text-xs font-medium px-4 py-3">Game</th>
+                  <th className="text-left text-white/40 text-xs font-medium px-4 py-3">Currency</th>
+                  <th className="text-right text-white/40 text-xs font-medium px-4 py-3">Bet</th>
+                  <th className="text-right text-white/40 text-xs font-medium px-4 py-3">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentSessions.map((s, i) => {
+                  const net = parseFloat(String(s.win_amount)) - parseFloat(String(s.bet_amount));
+                  return (
+                    <tr key={i} className="border-b border-casino-700 last:border-0">
+                      <td className="px-4 py-3 text-white capitalize">{s.game}</td>
+                      <td className="px-4 py-3 text-white/50 uppercase text-xs">{s.currency}</td>
+                      <td className="px-4 py-3 text-right text-white/60 font-mono text-xs">
+                        {s.currency === "gold"
+                          ? parseFloat(String(s.bet_amount)).toLocaleString()
+                          : parseFloat(String(s.bet_amount)).toFixed(2)}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-mono text-xs font-medium ${net > 0 ? "text-win" : net < 0 ? "text-lose" : "text-white/40"}`}>
+                        {net > 0 ? "+" : ""}
+                        {s.currency === "gold" ? net.toLocaleString() : net.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

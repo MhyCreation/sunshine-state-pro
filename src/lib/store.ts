@@ -1,32 +1,31 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
-interface ActiveBusiness {
-  id: string;
-  name: string;
-  slug: string;
-  role: "owner" | "admin" | "manager" | "employee";
+export type Currency = "gold" | "sweeps";
+
+interface WalletState {
+  goldCoins: number;
+  sweepsCoins: number;
+  loaded: boolean;
+  setWallet: (gold: number, sweeps: number) => void;
+  deductBet: (currency: Currency, amount: number) => void;
+  addWin: (currency: Currency, amount: number) => void;
 }
 
-interface AppState {
-  activeBusiness: ActiveBusiness | null;
-  setActiveBusiness: (b: ActiveBusiness | null) => void;
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
-  theme: "light" | "dark";
-  setTheme: (t: "light" | "dark") => void;
-}
-
-export const useAppStore = create<AppState>()(
-  persist(
-    (set) => ({
-      activeBusiness: null,
-      setActiveBusiness: (b) => set({ activeBusiness: b }),
-      sidebarOpen: true,
-      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-      theme: "light",
-      setTheme: (t) => set({ theme: t }),
-    }),
-    { name: "ssp-app-store" }
-  )
-);
+export const useWalletStore = create<WalletState>((set) => ({
+  goldCoins: 0,
+  sweepsCoins: 0,
+  loaded: false,
+  setWallet: (gold, sweeps) => set({ goldCoins: gold, sweepsCoins: sweeps, loaded: true }),
+  deductBet: (currency, amount) =>
+    set((state) =>
+      currency === "gold"
+        ? { goldCoins: Math.max(0, state.goldCoins - amount) }
+        : { sweepsCoins: parseFloat(Math.max(0, state.sweepsCoins - amount).toFixed(2)) }
+    ),
+  addWin: (currency, amount) =>
+    set((state) =>
+      currency === "gold"
+        ? { goldCoins: state.goldCoins + amount }
+        : { sweepsCoins: parseFloat((state.sweepsCoins + amount).toFixed(2)) }
+    ),
+}));

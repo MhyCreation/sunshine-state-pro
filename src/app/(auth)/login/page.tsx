@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/ui/logo";
 import { loginSchema, type LoginInput } from "@/lib/schemas";
 import { loginAction } from "@/lib/actions/auth";
 
@@ -27,22 +28,26 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-semibold tracking-tight text-navy-800">Welcome back</h1>
-      <p className="mt-2 text-sm text-navy-500">Sign in to your Sunshine workspace.</p>
+      <div className="md:hidden mb-8">
+        <Logo />
+      </div>
+
+      <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Welcome back</h1>
+      <p className="mt-2 text-sm text-white/50">Sign in to continue playing.</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
         <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Email</label>
-          <Input type="email" placeholder="you@company.com" {...register("email")} />
-          {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
+          <label className="text-xs font-medium text-white/60 mb-1.5 block">Email</label>
+          <Input type="email" placeholder="you@example.com" {...register("email")} />
+          {errors.email && <p className="text-xs text-lose mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-medium text-navy-600 mb-1.5 block">Password</label>
+          <label className="text-xs font-medium text-white/60 mb-1.5 block">Password</label>
           <Input type="password" placeholder="••••••••" {...register("password")} />
-          {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
+          {errors.password && <p className="text-xs text-lose mt-1">{errors.password.message}</p>}
         </div>
         {serverError && (
-          <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+          <div className="rounded-md bg-lose/10 border border-lose/30 px-3 py-2 text-xs text-lose">
             {serverError}
           </div>
         )}
@@ -51,10 +56,10 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-sm text-navy-500 text-center">
-        New to Sunshine?{" "}
-        <Link href="/signup" className="text-navy-800 font-medium hover:underline">
-          Create an account
+      <p className="mt-6 text-sm text-white/50 text-center">
+        New here?{" "}
+        <Link href="/signup" className="text-gold-400 font-medium hover:underline">
+          Claim your free coins
         </Link>
       </p>
     </div>
