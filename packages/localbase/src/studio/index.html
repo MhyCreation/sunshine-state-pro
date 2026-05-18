@@ -70,6 +70,11 @@
       <!-- Primary nav -->
       <nav class="px-2 pt-2 space-y-0.5 shrink-0">
         <button
+          @click="nav='projects'; loadProjects()"
+          :class="nav==='projects' ? 'nav-active' : 'nav-idle'"
+          class="nav-item"
+        ><span class="opacity-60">🗂</span> Projects</button>
+        <button
           @click="nav='sql'"
           :class="nav==='sql' ? 'nav-active' : 'nav-idle'"
           class="nav-item"
@@ -404,6 +409,83 @@
         </template>
       </div><!-- end STORAGE VIEW -->
 
+      <!-- ── PROJECTS ────────────────────────────────────────────────────── -->
+      <div x-show="nav==='projects'" class="flex-1 overflow-auto p-4">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-amber-400 font-semibold">Projects</div>
+            <div class="text-zinc-600 text-xs mt-0.5">Each project gets an isolated database + storage namespace</div>
+          </div>
+          <button @click="showNewProject=!showNewProject" class="btn-primary">+ New Project</button>
+        </div>
+
+        <!-- Create project form -->
+        <div x-show="showNewProject" class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-4">
+          <div class="flex gap-2">
+            <input
+              x-model="newProjectName"
+              @keydown.enter="createProject()"
+              type="text"
+              placeholder="Project name (e.g. my-app)"
+              class="input flex-1"
+            />
+            <button @click="createProject()" class="btn-primary">Create</button>
+            <button @click="showNewProject=false" class="btn-ghost">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Projects list -->
+        <div class="space-y-3">
+          <template x-if="projects.length===0">
+            <div class="text-zinc-700 text-xs py-6 text-center border border-zinc-800 rounded-lg">
+              No projects yet. Create one to get a project API key for app isolation.
+            </div>
+          </template>
+          <template x-for="p in projects" :key="p.id">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-zinc-200 font-semibold text-sm" x-text="p.name"></span>
+                    <span class="text-zinc-600 text-xs font-mono" x-text="p.slug"></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <code
+                      class="bg-zinc-800 text-amber-300 text-xs px-2 py-1 rounded font-mono truncate flex-1"
+                      x-text="p.api_key"
+                    ></code>
+                    <button
+                      @click="copyKey(p.api_key)"
+                      class="btn-ghost shrink-0 text-zinc-400 hover:text-amber-400"
+                      title="Copy API key"
+                    >copy</button>
+                  </div>
+                  <div class="text-zinc-700 text-xs mt-2">
+                    Created <span x-text="p.created_at?.slice(0,10)"></span>
+                    · Pass <code class="text-zinc-500">X-Project-Key: <span x-text="p.api_key"></span></code> to route requests to this project
+                  </div>
+                </div>
+                <button
+                  @click="deleteProject(p.id, p.name)"
+                  class="text-zinc-700 hover:text-red-400 text-xs shrink-0 transition-colors"
+                >delete</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- SDK usage snippet -->
+        <div x-show="projects.length > 0" class="mt-6 bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div class="text-zinc-500 text-xs mb-2 uppercase tracking-wider">Usage in your app</div>
+          <pre class="text-xs text-zinc-300 overflow-x-auto"><code>import { createLocalbase } from '@lb/js'
+
+const lb = createLocalbase({
+  url: '<span x-text="window.location.origin"></span>',
+  apiKey: '<span x-text="projects[0]?.api_key ?? 'pk_live_...'"></span>',
+})</code></pre>
+        </div>
+      </div><!-- end PROJECTS VIEW -->
+
     </main>
   </div><!-- end MAIN LAYOUT -->
 
@@ -509,6 +591,10 @@
 
       storageBuckets: [],
       storageFiles:   [],
+
+      projects:       [],
+      showNewProject: false,
+      newProjectName: '',
 
       toast: null,
 
@@ -666,6 +752,39 @@
         if (res.error) { this.notify(res.error.message, 'error'); return }
         this.notify('User deleted')
         await this.loadAuth()
+      },
+
+      // ── projects ───────────────────────────────────────────────────────
+
+      async loadProjects() {
+        const res = await this.api('GET', '/studio/api/projects')
+        this.projects = res.data ?? []
+      },
+
+      async createProject() {
+        if (!this.newProjectName.trim()) return
+        const res = await this.api('POST', '/studio/api/projects', { name: this.newProjectName.trim() })
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify(`Project "${res.data.name}" created`)
+        this.newProjectName = ''
+        this.showNewProject = false
+        await this.loadProjects()
+      },
+
+      async deleteProject(id, name) {
+        if (!confirm(`Delete project "${name}" and all its API keys?\n\nNote: the project database files are NOT deleted from disk.`)) return
+        const res = await this.api('DELETE', `/studio/api/projects/${id}`)
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify('Project deleted')
+        await this.loadProjects()
+      },
+
+      copyKey(key) {
+        navigator.clipboard.writeText(key).then(() => {
+          this.notify('API key copied to clipboard')
+        }).catch(() => {
+          this.notify('Could not copy — select it manually', 'error')
+        })
       },
 
       // ── storage ────────────────────────────────────────────────────────

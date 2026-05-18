@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:lb": "cd packages/localbase && bun run dev",
+    "dev:all": "concurrently -n lb,next -c cyan,magenta \"bun run dev:lb\" \"bun run dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
+    "concurrently": "^9.0.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "autoprefixer": "^10.4.20",

@@ -1,0 +1,42 @@
+services:
+  localbase:
+    build:
+      context: packages/localbase
+      dockerfile: Dockerfile
+    ports:
+      - "${LB_PORT:-7700}:7700"
+    volumes:
+      - lb_data:/data
+    environment:
+      LB_PORT:             "7700"
+      LB_DATA_DIR:         "/data"
+      LB_JWT_SECRET:       "${LB_JWT_SECRET:?Set LB_JWT_SECRET in .env}"
+      LB_API_KEY:          "${LB_API_KEY:-}"
+      # Storage: set LB_STORAGE_TYPE=s3 and fill the S3_* vars to use R2/MinIO/S3
+      LB_STORAGE_TYPE:     "${LB_STORAGE_TYPE:-local}"
+      LB_S3_ENDPOINT:      "${LB_S3_ENDPOINT:-}"
+      LB_S3_REGION:        "${LB_S3_REGION:-auto}"
+      LB_S3_BUCKET:        "${LB_S3_BUCKET:-}"
+      LB_S3_ACCESS_KEY:    "${LB_S3_ACCESS_KEY:-}"
+      LB_S3_SECRET_KEY:    "${LB_S3_SECRET_KEY:-}"
+    restart: unless-stopped
+
+  # MinIO — S3-compatible local storage for development.
+  # Start with: docker compose --profile s3 up
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"   # MinIO console UI
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER:     "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin}"
+    profiles:
+      - s3
+
+volumes:
+  lb_data:
+  minio_data:

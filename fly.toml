@@ -1,0 +1,50 @@
+# Fly.io config for the localbase server.
+# Deploy: fly launch --no-deploy, then fly deploy
+# First deploy: fly volumes create lb_data --size 3
+
+app            = "my-localbase"   # change to your app name
+primary_region = "iad"
+
+[build]
+  dockerfile = "packages/localbase/Dockerfile"
+
+[env]
+  LB_PORT     = "7700"
+  LB_DATA_DIR = "/data"
+
+# Set secrets (never commit these):
+#   fly secrets set LB_JWT_SECRET=<long-random-string>
+#   fly secrets set LB_API_KEY=<studio-admin-key>
+# For S3/R2:
+#   fly secrets set LB_STORAGE_TYPE=s3 LB_S3_ENDPOINT=https://... LB_S3_BUCKET=... LB_S3_ACCESS_KEY=... LB_S3_SECRET_KEY=...
+
+[[mounts]]
+  source      = "lb_data"
+  destination = "/data"
+
+[http_service]
+  internal_port       = 7700
+  force_https         = true
+  auto_stop_machines  = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 200
+    soft_limit = 150
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval     = "15s"
+    method       = "GET"
+    path         = "/health"
+    port         = 7700
+    timeout      = "5s"
+    type         = "http"

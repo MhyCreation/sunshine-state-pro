@@ -1,9 +1,19 @@
+export interface StorageConfig {
+  type: 'local' | 's3'
+  endpoint?: string       // R2/MinIO/custom S3 endpoint URL
+  region?: string         // default 'auto' for R2, 'us-east-1' for AWS
+  bucket?: string         // S3 bucket name
+  accessKeyId?: string
+  secretAccessKey?: string
+}
+
 export interface LBConfig {
   port: number
   dataDir: string
   jwtSecret: string
-  apiKey?: string
+  apiKey?: string         // Studio admin key (X-API-Key header)
   migrationsDir?: string
+  storage?: StorageConfig
 }
 
 export interface AuthUser {

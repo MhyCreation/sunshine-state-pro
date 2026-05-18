@@ -1,17 +1,23 @@
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
-import { mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
+import { mkdirSync } from 'fs'
+import { join, dirname } from 'path'
 import type { LBConfig } from './types.ts'
 
 export class DB {
   #db: Database
 
-  constructor(config: LBConfig) {
-    const dir = join(process.cwd(), config.dataDir)
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-
-    this.#db = new Database(join(dir, 'data.db'), { create: true })
-    // WAL mode for concurrent reads; enforce FK constraints
+  // Accept either a server config (uses dataDir/data.db) or an explicit file path
+  constructor(source: LBConfig | { dbPath: string }) {
+    let dbPath: string
+    if ('dbPath' in source) {
+      dbPath = source.dbPath
+      mkdirSync(dirname(dbPath), { recursive: true })
+    } else {
+      const dir = join(process.cwd(), source.dataDir)
+      mkdirSync(dir, { recursive: true })
+      dbPath = join(dir, 'data.db')
+    }
+    this.#db = new Database(dbPath, { create: true })
     this.#db.exec('PRAGMA journal_mode=WAL;')
     this.#db.exec('PRAGMA foreign_keys=ON;')
   }

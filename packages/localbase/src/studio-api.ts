@@ -1,38 +1,79 @@
 import { Hono } from 'hono'
-import { existsSync, readdirSync, statSync } from 'fs'
-import { join } from 'path'
 import { hash } from 'bcryptjs'
 import type { DB } from './db.ts'
 import type { LBConfig } from './types.ts'
+import type { ProjectDbCache } from './project-db.ts'
+import { createProject, listProjects, deleteProject } from './admin.ts'
 
-export function createStudioApi(db: DB, config: LBConfig): Hono {
+export function createStudioApi(
+  db: DB,            // default-project DB (tables/sql/auth endpoints)
+  adminDb: DB,       // master DB (projects endpoints)
+  projectCache: ProjectDbCache,
+  config: LBConfig
+): Hono {
   const app = new Hono()
 
-  // Guard: if an API key is configured, require it in X-API-Key header
+  // Guard: require X-API-Key if configured
   app.use('*', async (c, next) => {
     if (config.apiKey) {
       const key = c.req.header('X-API-Key') ?? c.req.query()['key']
-      if (key !== config.apiKey) {
-        return c.json(
-          { error: { code: 'FORBIDDEN', message: 'Studio API requires X-API-Key header' } },
-          403
-        )
-      }
+      if (key !== config.apiKey)
+        return c.json({ error: { code: 'FORBIDDEN', message: 'Studio API requires X-API-Key header' } }, 403)
     }
     return next()
   })
 
-  // ── SCHEMA ────────────────────────────────────────────────────────────────
+  // ── PROJECTS ──────────────────────────────────────────────────────────────
 
-  // List all tables
-  app.get('/tables', (c) => {
-    const rows = db.query<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-    )
-    return c.json({ data: rows.map((r) => r.name) })
+  app.get('/projects', (c) => {
+    return c.json({ data: listProjects(adminDb) })
   })
 
-  // Table detail: columns (PRAGMA table_info) + row count
+  app.post('/projects', async (c) => {
+    const body = await c.req.json().catch(() => null)
+    if (!body?.name || typeof body.name !== 'string' || !body.name.trim())
+      return c.json({ error: { code: 'INVALID_INPUT', message: 'name is required' } }, 400)
+    try {
+      const project = createProject(adminDb, body.name.trim())
+      return c.json({ data: project }, 201)
+    } catch (err: any) {
+      return c.json({ error: { code: 'CREATE_ERROR', message: err.message } }, 400)
+    }
+  })
+
+  app.delete('/projects/:id', (c) => {
+    const id = c.req.param('id')
+    const deleted = deleteProject(adminDb, id)
+    if (!deleted) return c.json({ error: { code: 'NOT_FOUND', message: 'project not found' } }, 404)
+    projectCache.evict(id)
+    return c.json({ data: { id } })
+  })
+
+  // Run migrations on a named project
+  app.post('/projects/:id/migrate', async (c) => {
+    const id = c.req.param('id')
+    const projects = listProjects(adminDb)
+    if (!projects.find(p => p.id === id))
+      return c.json({ error: { code: 'NOT_FOUND', message: 'project not found' } }, 404)
+    const projectDb = projectCache.get(id, config)
+    const body = await c.req.json().catch(() => null)
+    if (!body?.sql || typeof body.sql !== 'string')
+      return c.json({ error: { code: 'INVALID_INPUT', message: 'sql is required' } }, 400)
+    try {
+      projectDb.exec(body.sql)
+      return c.json({ data: { success: true } })
+    } catch (err: any) {
+      return c.json({ error: { code: 'MIGRATION_ERROR', message: err.message } }, 400)
+    }
+  })
+
+  // ── SCHEMA ────────────────────────────────────────────────────────────────
+
+  app.get('/tables', (c) => {
+    const rows = db.query<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+    return c.json({ data: rows.map(r => r.name) })
+  })
+
   app.get('/tables/:name', (c) => {
     const name = c.req.param('name')
     try {
@@ -49,24 +90,20 @@ export function createStudioApi(db: DB, config: LBConfig): Hono {
 
   app.post('/sql', async (c) => {
     const body = await c.req.json().catch(() => null)
-    if (!body?.sql) {
+    if (!body?.sql)
       return c.json({ error: { code: 'INVALID_INPUT', message: 'sql field required' } }, 400)
-    }
-
     const sql = String(body.sql).trim()
-
+    // Allow targeting a specific project's DB
+    const targetDb = body.project_id ? projectCache.get(body.project_id, config) : db
     try {
       const isQuery = /^(SELECT|WITH|PRAGMA|EXPLAIN)\s/i.test(sql)
-
       if (isQuery) {
-        const rows = db.query(sql)
+        const rows = targetDb.query(sql)
         const columns = rows.length > 0 ? Object.keys(rows[0]) : []
         return c.json({ data: { type: 'select', columns, rows, count: rows.length } })
       } else {
-        const result = db.run(sql)
-        return c.json({
-          data: { type: 'exec', changes: result.changes, lastInsertRowid: String(result.lastInsertRowid) },
-        })
+        const result = targetDb.run(sql)
+        return c.json({ data: { type: 'exec', changes: result.changes, lastInsertRowid: String(result.lastInsertRowid) } })
       }
     } catch (err: any) {
       return c.json({ error: { code: 'SQL_ERROR', message: err.message } }, 400)
@@ -76,29 +113,20 @@ export function createStudioApi(db: DB, config: LBConfig): Hono {
   // ── AUTH USERS ────────────────────────────────────────────────────────────
 
   app.get('/auth/users', (c) => {
-    const users = db.query(
-      'SELECT id, email, role, metadata, created_at FROM auth_users ORDER BY created_at DESC'
-    )
+    const users = db.query('SELECT id, email, role, metadata, created_at FROM auth_users ORDER BY created_at DESC')
     return c.json({ data: users })
   })
 
   app.post('/auth/users', async (c) => {
     const body = await c.req.json().catch(() => null)
-    if (!body?.email || !body?.password) {
+    if (!body?.email || !body?.password)
       return c.json({ error: { code: 'INVALID_INPUT', message: 'email and password required' } }, 400)
-    }
-
-    if (db.queryOne('SELECT id FROM auth_users WHERE email = ?', [body.email])) {
+    if (db.queryOne('SELECT id FROM auth_users WHERE email = ?', [body.email]))
       return c.json({ error: { code: 'EMAIL_EXISTS', message: 'email already registered' } }, 409)
-    }
-
     const id = crypto.randomUUID()
     const passwordHash = await hash(body.password, 12)
-    db.run(
-      'INSERT INTO auth_users (id, email, password_hash, role, metadata) VALUES (?, ?, ?, ?, ?)',
-      [id, body.email, passwordHash, body.role ?? 'user', JSON.stringify(body.data ?? {})]
-    )
-
+    db.run('INSERT INTO auth_users (id, email, password_hash, role, metadata) VALUES (?, ?, ?, ?, ?)',
+      [id, body.email, passwordHash, body.role ?? 'user', JSON.stringify(body.data ?? {})])
     const user = db.queryOne('SELECT id, email, role, metadata, created_at FROM auth_users WHERE id = ?', [id])
     return c.json({ data: user }, 201)
   })
@@ -113,33 +141,16 @@ export function createStudioApi(db: DB, config: LBConfig): Hono {
 
   // ── STORAGE ───────────────────────────────────────────────────────────────
 
-  app.get('/storage', (c) => {
-    const storageRoot = join(process.cwd(), config.dataDir, 'storage')
-    if (!existsSync(storageRoot)) return c.json({ data: { buckets: [], files: [] } })
-
-    const buckets: string[] = []
-    const files: Array<{ bucket: string; path: string; size: number }> = []
-
-    for (const entry of readdirSync(storageRoot)) {
-      const full = join(storageRoot, entry)
-      if (!statSync(full).isDirectory()) continue
-      buckets.push(entry)
-
-      function walk(dir: string, prefix: string): void {
-        for (const f of readdirSync(dir)) {
-          const fp = join(dir, f)
-          const stat = statSync(fp)
-          if (stat.isDirectory()) {
-            walk(fp, prefix ? `${prefix}/${f}` : f)
-          } else {
-            files.push({ bucket: entry, path: prefix ? `${prefix}/${f}` : f, size: stat.size })
-          }
-        }
-      }
-      walk(full, '')
+  app.get('/storage', async (c) => {
+    // Import the adapter dynamically to avoid circular deps
+    const { createStorageAdapter } = await import('./storage-adapter.ts')
+    const adapter = createStorageAdapter(config)
+    try {
+      const result = await adapter.listAll('default')
+      return c.json({ data: result })
+    } catch (err: any) {
+      return c.json({ error: { code: 'STORAGE_ERROR', message: err.message } }, 400)
     }
-
-    return c.json({ data: { buckets, files } })
   })
 
   return app

@@ -36,7 +36,8 @@ export class HttpClient {
 
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (this.#accessToken) headers['Authorization'] = `Bearer ${this.#accessToken}`
-    if (this.#apiKey) headers['X-API-Key'] = this.#apiKey
+    // X-Project-Key routes the request to the correct isolated project DB on the server
+    if (this.#apiKey) headers['X-Project-Key'] = this.#apiKey
 
     try {
       const res = await fetch(url.toString(), {
