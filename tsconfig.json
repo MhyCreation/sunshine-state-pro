@@ -13,9 +13,13 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "allowImportingTsExtensions": true,
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"],
+      "@lb/js": ["./packages/localbase-js/src/index.ts"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "packages/localbase/src"]
 }

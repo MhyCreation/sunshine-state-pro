@@ -40,12 +40,16 @@ function buildWhere(filters: Record<string, unknown>, params: unknown[]): string
           clauses.push(`"${col}" IS ${value === null ? 'NULL' : '?'}`)
           if (value !== null) params.push(value)
           break
-        case 'in':
-          if (Array.isArray(value) && value.length > 0) {
-            clauses.push(`"${col}" IN (${value.map(() => '?').join(',')})`)
-            params.push(...value)
+        case 'in': {
+          const arr = Array.isArray(value)
+            ? value
+            : typeof value === 'string' ? value.split(',').map(s => s.trim()).filter(Boolean) : []
+          if (arr.length > 0) {
+            clauses.push(`"${col}" IN (${arr.map(() => '?').join(',')})`)
+            params.push(...arr)
           }
           break
+        }
       }
     } else if (value === null) {
       clauses.push(`"${key}" IS NULL`)

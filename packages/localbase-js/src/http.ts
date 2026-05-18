@@ -25,7 +25,7 @@ export class HttpClient {
       body?: unknown
       query?: Record<string, string | number | boolean | undefined>
     } = {}
-  ): Promise<{ data: T | null; error: LBError | null }> {
+  ): Promise<{ data: T | null; error: LBError | null; count?: number }> {
     const url = new URL(this.baseUrl + path)
 
     if (options.query) {
@@ -45,7 +45,7 @@ export class HttpClient {
         body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
       })
 
-      const json = (await res.json()) as { data?: T; error?: LBError }
+      const json = (await res.json()) as { data?: T; error?: LBError; count?: number }
 
       if (!res.ok) {
         return {
@@ -54,7 +54,7 @@ export class HttpClient {
         }
       }
 
-      return { data: (json.data ?? null) as T | null, error: null }
+      return { data: (json.data ?? null) as T | null, error: null, count: json.count }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'network error'
       return { data: null, error: { code: 'NETWORK_ERROR', message: msg } }

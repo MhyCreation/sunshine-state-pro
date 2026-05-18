@@ -26,11 +26,16 @@ export class TableQuery<T> {
 
   // Equality filter shorthand: { status: 'active' }
   // Operator filter: { 'created_at.gt': '2024-01-01', 'amount.gte': 100 }
-  where(filter: Record<string, string | number | boolean | null>): this {
+  // Array filter for IN: { 'id.in': ['a', 'b', 'c'] } → serialized as comma-separated
+  where(filter: Record<string, string | number | boolean | null | string[]>): this {
     for (const [k, v] of Object.entries(filter)) {
-      if (v !== null) this.#params[k] = v
-      // null → IS NULL handled by server via "column.is=null" — pass as string
-      else this.#params[`${k}.is`] = 'null'
+      if (Array.isArray(v)) {
+        this.#params[k] = v.join(',')
+      } else if (v !== null) {
+        this.#params[k] = v
+      } else {
+        this.#params[`${k}.is`] = 'null'
+      }
     }
     return this
   }

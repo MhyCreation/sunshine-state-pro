@@ -5,8 +5,8 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      // Add your localbase storage URL here if you serve images from it
     ],
   },
 };

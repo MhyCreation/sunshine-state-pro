@@ -54,6 +54,11 @@ export class AuthModule {
     return this.#session
   }
 
+  // Set just the access token without a full session (used by server-side adapters)
+  setToken(token: string): void {
+    this.#http.setAccessToken(token)
+  }
+
   // Restore a previously persisted session (e.g. from localStorage)
   restoreSession(session: AuthSession): void {
     this.#applySession(session)
