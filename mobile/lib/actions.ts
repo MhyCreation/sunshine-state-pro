@@ -137,6 +137,40 @@ export async function recordWin(
   return {};
 }
 
+export async function requestRedemption(
+  amount: number
+): Promise<{ success: boolean; error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  if (!Number.isFinite(amount) || amount < 100) {
+    return { success: false, error: 'Minimum redemption is 100 SC' };
+  }
+
+  const { data: wallet } = await supabase
+    .from('wallets').select('sweeps_coins').eq('user_id', user.id).single();
+  if (!wallet) return { success: false, error: 'Wallet not found' };
+
+  const currentSc = parseFloat(String(wallet.sweeps_coins));
+  if (currentSc < amount) return { success: false, error: 'Insufficient Sweeps Coins' };
+
+  const newSc = parseFloat((currentSc - amount).toFixed(2));
+  const { error: updateError } = await supabase
+    .from('wallets').update({ sweeps_coins: newSc }).eq('user_id', user.id);
+  if (updateError) return { success: false, error: updateError.message };
+
+  await supabase.from('transactions').insert({
+    user_id: user.id,
+    type: 'redemption',
+    currency: 'sweeps',
+    amount: -amount,
+    balance_after: newSc,
+    description: `Redemption request — ${amount.toFixed(2)} SC`,
+  });
+
+  return { success: true };
+}
+
 export async function purchaseGoldCoins(packId: string): Promise<{ success: boolean; goldAwarded?: number; error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };

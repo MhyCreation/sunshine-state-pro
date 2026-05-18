@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getRecentTransactions } from "@/lib/actions/wallet";
+import { RedemptionForm } from "@/components/casino/redemption-form";
 
 function formatAmount(amount: number, currency: string) {
   if (currency === "gold") return `🪙 ${amount > 0 ? "+" : ""}${Math.round(amount).toLocaleString()} GC`;
@@ -64,6 +65,9 @@ export default async function WalletPage() {
           </div>
         </div>
       </div>
+
+      {/* Redemption */}
+      <RedemptionForm sweepsCoins={parseFloat(String(wallet?.sweeps_coins ?? "0"))} />
 
       {/* Sweepstakes notice */}
       <div className="bg-casino-800 rounded-xl border border-casino-600 p-4">
