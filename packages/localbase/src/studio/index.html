@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Localbase Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      background: #0a0a0a;
+      color: #e4e4e7;
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+    .nav-item { @apply w-full text-left px-3 py-1.5 rounded text-xs flex items-center gap-2 transition-colors; }
+    .nav-active { background: #1c1c1c; color: #fbbf24; }
+    .nav-idle { color: #71717a; }
+    .nav-idle:hover { background: #141414; color: #a1a1aa; }
+    .cell { @apply px-3 py-1.5 max-w-[200px] truncate text-zinc-300; }
+    .th { @apply px-3 py-2 text-left text-zinc-500 border-b border-zinc-800 whitespace-nowrap font-medium; }
+    .input {
+      @apply bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs
+             focus:outline-none focus:border-amber-500 transition-colors;
+    }
+    .btn-primary {
+      @apply bg-amber-500 hover:bg-amber-400 text-black text-xs font-semibold
+             px-3 py-1.5 rounded transition-colors disabled:opacity-40;
+    }
+    .btn-ghost {
+      @apply text-zinc-500 hover:text-zinc-200 text-xs px-2 py-1 rounded transition-colors;
+    }
+  </style>
+</head>
+<body x-data="studio()" x-init="init()" x-cloak class="h-screen overflow-hidden flex flex-col">
+
+  <!-- ── API KEY GATE ───────────────────────────────────────────────────── -->
+  <div x-show="needsKey" class="h-screen flex items-center justify-center">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-8 w-80 shadow-2xl">
+      <div class="text-amber-400 font-bold text-base mb-0.5">🌟 Localbase Studio</div>
+      <div class="text-zinc-500 text-xs mb-6">API key required to access the Studio.</div>
+      <input
+        x-model="inputKey"
+        @keydown.enter="tryKey()"
+        type="password"
+        placeholder="LB_API_KEY"
+        class="input w-full mb-2"
+      />
+      <div x-show="keyError" class="text-red-400 text-xs mb-2" x-text="keyError"></div>
+      <button @click="tryKey()" class="btn-primary w-full justify-center flex">Connect</button>
+    </div>
+  </div>
+
+  <!-- ── MAIN LAYOUT ────────────────────────────────────────────────────── -->
+  <div x-show="!needsKey" class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-52 bg-zinc-950 border-r border-zinc-800 flex flex-col shrink-0">
+
+      <!-- Wordmark + status -->
+      <div class="px-4 py-3 border-b border-zinc-800">
+        <div class="text-amber-400 font-bold tracking-tight">🌟 LOCALBASE</div>
+        <div class="text-zinc-600 text-xs mt-0.5 truncate" x-text="serverStatus"></div>
+      </div>
+
+      <!-- Primary nav -->
+      <nav class="px-2 pt-2 space-y-0.5 shrink-0">
+        <button
+          @click="nav='sql'"
+          :class="nav==='sql' ? 'nav-active' : 'nav-idle'"
+          class="nav-item"
+        ><span class="opacity-60">⟩_</span> SQL Editor</button>
+        <button
+          @click="nav='auth'; loadAuth()"
+          :class="nav==='auth' ? 'nav-active' : 'nav-idle'"
+          class="nav-item"
+        ><span class="opacity-60">👤</span> Auth Users</button>
+        <button
+          @click="nav='storage'; loadStorage()"
+          :class="nav==='storage' ? 'nav-active' : 'nav-idle'"
+          class="nav-item"
+        ><span class="opacity-60">📁</span> Storage</button>
+      </nav>
+
+      <!-- Tables section header -->
+      <div class="px-4 pt-4 pb-1 shrink-0">
+        <div class="text-zinc-600 text-[10px] uppercase tracking-widest">Tables</div>
+      </div>
+
+      <!-- Table list (scrollable) -->
+      <div class="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+        <template x-for="t in tables" :key="t">
+          <button
+            @click="selectTable(t)"
+            :class="activeTable===t && nav==='table' ? 'nav-active' : 'nav-idle'"
+            class="nav-item truncate"
+            x-text="t"
+          ></button>
+        </template>
+        <div x-show="tables.length===0" class="text-zinc-700 text-xs px-3 py-2">
+          No tables yet
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Content area -->
+    <main class="flex-1 overflow-hidden flex flex-col bg-[#0a0a0a]">
+
+      <!-- ── WELCOME ──────────────────────────────────────────────────── -->
+      <div x-show="nav==='welcome'" class="flex-1 flex items-center justify-center">
+        <div class="text-center text-zinc-700">
+          <div class="text-5xl mb-3">🌟</div>
+          <div class="text-sm">Select a table or open the SQL editor</div>
+        </div>
+      </div>
+
+      <!-- ── TABLE VIEW ───────────────────────────────────────────────── -->
+      <div x-show="nav==='table'" class="flex-1 overflow-hidden flex flex-col">
+
+        <!-- Toolbar -->
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-semibold" x-text="activeTable"></span>
+            <span class="text-zinc-600 text-xs" x-text="rowCount + ' rows'"></span>
+          </div>
+          <button @click="openInsert()" class="btn-primary">+ Insert row</button>
+        </div>
+
+        <!-- Grid -->
+        <div class="flex-1 overflow-auto">
+          <table class="w-full text-xs border-collapse">
+            <thead class="sticky top-0 bg-zinc-950 z-10">
+              <tr>
+                <template x-for="col in schema" :key="col.name">
+                  <th class="th">
+                    <span x-text="col.name"></span>
+                    <span class="text-zinc-700 ml-1 font-normal" x-text="col.type.toUpperCase()"></span>
+                  </th>
+                </template>
+                <th class="th text-right w-20 pr-4">actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="rows.length===0 && !tableLoading">
+                <tr>
+                  <td :colspan="schema.length+1" class="text-center py-12 text-zinc-700">
+                    No rows found
+                  </td>
+                </tr>
+              </template>
+              <template x-for="row in rows" :key="row.id ?? JSON.stringify(row)">
+                <tr class="hover:bg-zinc-900/50 border-b border-zinc-800/40 group">
+                  <template x-for="col in schema" :key="col.name">
+                    <td class="cell" :title="str(row[col.name])">
+                      <template x-if="row[col.name]===null || row[col.name]===undefined">
+                        <span class="text-zinc-700">null</span>
+                      </template>
+                      <template x-if="row[col.name]!==null && row[col.name]!==undefined">
+                        <span x-text="fmt(row[col.name])"></span>
+                      </template>
+                    </td>
+                  </template>
+                  <td class="px-3 py-1.5 text-right whitespace-nowrap">
+                    <button
+                      @click="openEdit(row)"
+                      class="text-zinc-600 hover:text-amber-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                    >edit</button>
+                    <button
+                      @click="deleteRow(row.id)"
+                      class="text-zinc-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >del</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-4 py-2 border-t border-zinc-800 shrink-0 text-xs text-zinc-600">
+          <span>
+            Rows <span x-text="page*pageSize+1"></span>–<span x-text="Math.min((page+1)*pageSize,rowCount)"></span>
+            of <span x-text="rowCount"></span>
+          </span>
+          <div class="flex items-center gap-1">
+            <button
+              @click="prevPage()"
+              :disabled="page===0"
+              class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 transition-colors"
+            >←</button>
+            <span class="px-2 text-zinc-500" x-text="page+1"></span>
+            <button
+              @click="nextPage()"
+              :disabled="(page+1)*pageSize>=rowCount"
+              class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 transition-colors"
+            >→</button>
+          </div>
+        </div>
+
+      </div><!-- end TABLE VIEW -->
+
+      <!-- ── SQL EDITOR ───────────────────────────────────────────────── -->
+      <div x-show="nav==='sql'" class="flex-1 overflow-hidden flex flex-col p-4 gap-3">
+        <div class="shrink-0 flex items-center justify-between">
+          <span class="text-amber-400 font-semibold">SQL Editor</span>
+          <span class="text-zinc-700 text-xs">Ctrl+Enter to run</span>
+        </div>
+
+        <!-- Editor -->
+        <div class="relative shrink-0">
+          <textarea
+            x-model="sqlText"
+            @keydown.ctrl.enter.prevent="runSql()"
+            @keydown.meta.enter.prevent="runSql()"
+            rows="8"
+            spellcheck="false"
+            placeholder="SELECT * FROM todos LIMIT 10;"
+            class="input w-full font-mono leading-relaxed"
+            style="resize:vertical"
+          ></textarea>
+          <button
+            @click="runSql()"
+            :disabled="sqlRunning"
+            class="btn-primary absolute bottom-2.5 right-2.5"
+          >
+            <span x-show="!sqlRunning">▶ Run</span>
+            <span x-show="sqlRunning">…</span>
+          </button>
+        </div>
+
+        <!-- Error -->
+        <div
+          x-show="sqlError"
+          class="shrink-0 bg-red-950/60 border border-red-900 text-red-300 rounded px-3 py-2 text-xs font-mono"
+          x-text="sqlError"
+        ></div>
+
+        <!-- Results -->
+        <div x-show="sqlResult && !sqlError" class="flex-1 overflow-auto border border-zinc-800 rounded">
+          <template x-if="sqlResult?.type==='select'">
+            <div>
+              <div class="px-3 py-2 border-b border-zinc-800 text-zinc-500 text-xs">
+                <span x-text="sqlResult.count"></span> row(s) returned
+              </div>
+              <table class="w-full text-xs border-collapse">
+                <thead class="sticky top-0 bg-zinc-950">
+                  <tr>
+                    <template x-for="col in sqlResult.columns" :key="col">
+                      <th class="th" x-text="col"></th>
+                    </template>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(row, i) in sqlResult.rows" :key="i">
+                    <tr class="border-b border-zinc-800/40 hover:bg-zinc-900/40">
+                      <template x-for="col in sqlResult.columns" :key="col">
+                        <td class="cell" :title="str(row[col])">
+                          <template x-if="row[col]===null||row[col]===undefined">
+                            <span class="text-zinc-700">null</span>
+                          </template>
+                          <template x-if="row[col]!==null&&row[col]!==undefined">
+                            <span x-text="fmt(row[col])"></span>
+                          </template>
+                        </td>
+                      </template>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </template>
+          <template x-if="sqlResult?.type==='exec'">
+            <div class="px-4 py-3 text-green-400 text-xs">
+              ✓ <span x-text="sqlResult.changes"></span> row(s) affected
+              <template x-if="sqlResult.lastInsertRowid !== '0'">
+                <span class="text-zinc-600 ml-2">last id: <span x-text="sqlResult.lastInsertRowid"></span></span>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div><!-- end SQL VIEW -->
+
+      <!-- ── AUTH USERS ───────────────────────────────────────────────── -->
+      <div x-show="nav==='auth'" class="flex-1 overflow-auto p-4">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-amber-400 font-semibold">
+            Auth Users
+            <span class="text-zinc-600 font-normal ml-1 text-xs" x-text="'('+authUsers.length+')'"></span>
+          </div>
+          <button @click="showNewUser=!showNewUser" class="btn-primary">+ New User</button>
+        </div>
+
+        <!-- Create user form -->
+        <div x-show="showNewUser" class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-3 gap-2">
+            <input x-model="newUser.email" type="email" placeholder="email@example.com" class="input" />
+            <input x-model="newUser.password" type="password" placeholder="Password" class="input" />
+            <div class="flex gap-2">
+              <select x-model="newUser.role" class="input flex-1">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+              <button @click="createUser()" class="btn-primary">Create</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users table -->
+        <div class="border border-zinc-800 rounded-lg overflow-hidden">
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-zinc-950">
+                <th class="th">ID</th>
+                <th class="th">Email</th>
+                <th class="th">Role</th>
+                <th class="th">Created</th>
+                <th class="th text-right pr-4">actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="authUsers.length===0">
+                <tr>
+                  <td colspan="5" class="text-center py-8 text-zinc-700">No users yet</td>
+                </tr>
+              </template>
+              <template x-for="u in authUsers" :key="u.id">
+                <tr class="border-t border-zinc-800/50 hover:bg-zinc-900/40 group">
+                  <td class="cell text-zinc-600 font-mono" x-text="u.id.slice(0,8)+'…'" :title="u.id"></td>
+                  <td class="cell" x-text="u.email"></td>
+                  <td class="px-3 py-1.5">
+                    <span
+                      :class="u.role==='admin' ? 'bg-amber-950 text-amber-400' : 'bg-zinc-800 text-zinc-400'"
+                      class="text-xs rounded px-1.5 py-0.5"
+                      x-text="u.role"
+                    ></span>
+                  </td>
+                  <td class="cell text-zinc-500" x-text="u.created_at?.slice(0,10)"></td>
+                  <td class="px-3 py-1.5 text-right">
+                    <button
+                      @click="deleteUser(u.id)"
+                      class="text-zinc-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >delete</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- end AUTH VIEW -->
+
+      <!-- ── STORAGE ───────────────────────────────────────────────────── -->
+      <div x-show="nav==='storage'" class="flex-1 overflow-auto p-4">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-amber-400 font-semibold">Storage</div>
+          <button @click="loadStorage()" class="btn-ghost">↺ Refresh</button>
+        </div>
+
+        <div x-show="storageBuckets.length===0" class="text-zinc-700 text-xs">
+          No files uploaded yet. Use <code class="text-zinc-500">lb.storage.upload(bucket, path, data)</code>.
+        </div>
+
+        <template x-for="bucket in storageBuckets" :key="bucket">
+          <div class="mb-6">
+            <div class="text-zinc-300 text-sm font-medium mb-2">
+              📁 <span x-text="bucket"></span>
+              <span class="text-zinc-600 text-xs ml-2" x-text="storageFiles.filter(f=>f.bucket===bucket).length + ' files'"></span>
+            </div>
+            <div class="border border-zinc-800 rounded-lg overflow-hidden">
+              <table class="w-full text-xs border-collapse">
+                <thead>
+                  <tr class="bg-zinc-950">
+                    <th class="th">Path</th>
+                    <th class="th">Size</th>
+                    <th class="th text-right pr-4">actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="f in storageFiles.filter(f=>f.bucket===bucket)" :key="f.path">
+                    <tr class="border-t border-zinc-800/50 hover:bg-zinc-900/40 group">
+                      <td class="cell" x-text="f.path"></td>
+                      <td class="cell text-zinc-500" x-text="fmtSize(f.size)"></td>
+                      <td class="px-3 py-1.5 text-right whitespace-nowrap">
+                        <a
+                          :href="'/storage/'+bucket+'/'+f.path"
+                          target="_blank"
+                          class="text-zinc-600 hover:text-amber-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity mr-3"
+                        >view</a>
+                        <button
+                          @click="deleteFile(bucket, f.path)"
+                          class="text-zinc-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >delete</button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+      </div><!-- end STORAGE VIEW -->
+
+    </main>
+  </div><!-- end MAIN LAYOUT -->
+
+  <!-- ── INSERT / EDIT MODAL ────────────────────────────────────────────── -->
+  <div
+    x-show="modal"
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    @click.self="modal=false"
+    class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+  >
+    <div
+      @click.stop
+      x-transition:enter="transition ease-out duration-150"
+      x-transition:enter-start="opacity-0 scale-95"
+      x-transition:enter-end="opacity-100 scale-100"
+      class="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg shadow-2xl"
+    >
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800">
+        <div class="text-sm font-semibold" x-text="editId ? 'Edit Row — '+activeTable : 'Insert Row — '+activeTable"></div>
+        <button @click="modal=false" class="text-zinc-600 hover:text-zinc-200 text-xl leading-none">×</button>
+      </div>
+
+      <div class="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
+        <template x-for="col in editableCols" :key="col.name">
+          <div>
+            <label class="block mb-1">
+              <span class="text-zinc-300 text-xs" x-text="col.name"></span>
+              <span class="text-zinc-700 text-xs ml-1" x-text="col.type.toUpperCase()"></span>
+              <span x-show="col.notnull && !col.dflt_value" class="text-red-500 text-xs ml-1">*</span>
+            </label>
+            <input
+              :type="col.type.toUpperCase().includes('INT') ? 'number' : 'text'"
+              x-model="formData[col.name]"
+              :placeholder="col.dflt_value ?? col.name"
+              class="input w-full"
+            />
+          </div>
+        </template>
+        <div x-show="editableCols.length===0" class="text-zinc-600 text-xs">
+          All columns are auto-managed (id, created_at, updated_at).
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 border-t border-zinc-800 flex justify-end gap-2">
+        <button @click="modal=false" class="btn-ghost">Cancel</button>
+        <button @click="submitForm()" class="btn-primary" x-text="editId ? 'Update' : 'Insert'"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOAST ──────────────────────────────────────────────────────────── -->
+  <div
+    x-show="toast"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 translate-y-2"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    :class="toast?.type==='error'
+      ? 'bg-red-950 border-red-800 text-red-300'
+      : 'bg-green-950 border-green-800 text-green-300'"
+    class="fixed bottom-4 right-4 px-4 py-2 rounded-lg border text-xs z-50 shadow-lg"
+    x-text="toast?.msg"
+  ></div>
+
+  <script>
+  function studio() {
+    return {
+      // ── state ──────────────────────────────────────────────────────────
+
+      apiKey:       localStorage.getItem('lb_studio_key') ?? '',
+      inputKey:     '',
+      keyError:     '',
+      needsKey:     false,
+      serverStatus: 'connecting…',
+
+      nav:         'welcome',
+      tables:      [],
+      activeTable: '',
+
+      schema:      [],
+      rows:        [],
+      rowCount:    0,
+      page:        0,
+      pageSize:    50,
+      tableLoading: false,
+
+      modal:     false,
+      editId:    null,
+      formData:  {},
+
+      sqlText:    "SELECT name, sql FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+      sqlResult:  null,
+      sqlError:   '',
+      sqlRunning: false,
+
+      authUsers:   [],
+      showNewUser: false,
+      newUser:     { email: '', password: '', role: 'user' },
+
+      storageBuckets: [],
+      storageFiles:   [],
+
+      toast: null,
+
+      // ── lifecycle ──────────────────────────────────────────────────────
+
+      async init() {
+        const res = await this.api('GET', '/studio/api/tables').catch(() => null)
+        if (!res) { this.serverStatus = 'offline'; return }
+        if (res.error?.code === 'FORBIDDEN') { this.needsKey = true; return }
+        this.tables = res.data ?? []
+        this.serverStatus = window.location.host
+      },
+
+      async tryKey() {
+        this.keyError = ''
+        const res = await this.api('GET', '/studio/api/tables', null, this.inputKey).catch(() => null)
+        if (!res) { this.keyError = 'Could not reach server'; return }
+        if (res.error?.code === 'FORBIDDEN') { this.keyError = 'Invalid API key'; return }
+        this.apiKey = this.inputKey
+        localStorage.setItem('lb_studio_key', this.apiKey)
+        this.needsKey = false
+        this.tables = res.data ?? []
+        this.serverStatus = window.location.host
+      },
+
+      // ── table view ─────────────────────────────────────────────────────
+
+      async selectTable(name) {
+        this.activeTable = name
+        this.nav = 'table'
+        this.page = 0
+        this.tableLoading = true
+
+        const meta = await this.api('GET', `/studio/api/tables/${name}`)
+        this.schema = meta.data?.columns ?? []
+        this.rowCount = meta.data?.count ?? 0
+
+        await this.loadRows()
+        this.tableLoading = false
+      },
+
+      async loadRows() {
+        if (!this.activeTable) return
+        const qs = new URLSearchParams({
+          limit:  String(this.pageSize),
+          offset: String(this.page * this.pageSize),
+        })
+        const res = await this.api('GET', `/rest/${this.activeTable}?${qs}`)
+        this.rows = res.data ?? []
+        if (res.count !== undefined) this.rowCount = res.count
+      },
+
+      prevPage() { if (this.page > 0) { this.page--; this.loadRows() } },
+      nextPage() {
+        if ((this.page + 1) * this.pageSize < this.rowCount) { this.page++; this.loadRows() }
+      },
+
+      // Columns the user should fill in — skip auto-managed ones
+      get editableCols() {
+        const skip = new Set(['id', 'created_at', 'updated_at'])
+        return this.schema.filter(c => !skip.has(c.name))
+      },
+
+      openInsert() {
+        this.editId = null
+        this.formData = {}
+        this.editableCols.forEach(c => { this.formData[c.name] = '' })
+        this.modal = true
+      },
+
+      openEdit(row) {
+        this.editId = row.id
+        this.formData = {}
+        this.editableCols.forEach(c => { this.formData[c.name] = row[c.name] ?? '' })
+        this.modal = true
+      },
+
+      async submitForm() {
+        // Strip empty strings so they don't clobber DB defaults
+        const payload = Object.fromEntries(
+          Object.entries(this.formData).filter(([, v]) => v !== '')
+        )
+
+        let res
+        if (this.editId) {
+          res = await this.api('PATCH', `/rest/${this.activeTable}/${this.editId}`, payload)
+        } else {
+          res = await this.api('POST', `/rest/${this.activeTable}`, payload)
+        }
+
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify(this.editId ? 'Row updated' : 'Row inserted')
+        this.modal = false
+
+        // Refresh count + current page
+        const meta = await this.api('GET', `/studio/api/tables/${this.activeTable}`)
+        this.rowCount = meta.data?.count ?? this.rowCount
+        await this.loadRows()
+      },
+
+      async deleteRow(id) {
+        if (!id) { this.notify('Row has no id column; use the SQL editor to delete', 'error'); return }
+        if (!confirm('Delete this row? This cannot be undone.')) return
+        const res = await this.api('DELETE', `/rest/${this.activeTable}/${id}`)
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify('Row deleted')
+        const meta = await this.api('GET', `/studio/api/tables/${this.activeTable}`)
+        this.rowCount = meta.data?.count ?? this.rowCount
+        await this.loadRows()
+      },
+
+      // ── SQL editor ─────────────────────────────────────────────────────
+
+      async runSql() {
+        if (!this.sqlText.trim() || this.sqlRunning) return
+        this.sqlRunning = true
+        this.sqlError = ''
+        this.sqlResult = null
+
+        const res = await this.api('POST', '/studio/api/sql', { sql: this.sqlText })
+          .catch(e => ({ error: { message: e.message } }))
+
+        this.sqlRunning = false
+
+        if (res.error) {
+          this.sqlError = res.error.message
+        } else {
+          this.sqlResult = res.data
+          // Refresh table list (DDL may have added/dropped tables)
+          const tables = await this.api('GET', '/studio/api/tables')
+          this.tables = tables.data ?? []
+        }
+      },
+
+      // ── auth ───────────────────────────────────────────────────────────
+
+      async loadAuth() {
+        const res = await this.api('GET', '/studio/api/auth/users')
+        this.authUsers = res.data ?? []
+      },
+
+      async createUser() {
+        if (!this.newUser.email || !this.newUser.password) return
+        const res = await this.api('POST', '/studio/api/auth/users', this.newUser)
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify('User created')
+        this.newUser = { email: '', password: '', role: 'user' }
+        this.showNewUser = false
+        await this.loadAuth()
+      },
+
+      async deleteUser(id) {
+        if (!confirm('Delete this user and all their sessions?')) return
+        const res = await this.api('DELETE', `/studio/api/auth/users/${id}`)
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify('User deleted')
+        await this.loadAuth()
+      },
+
+      // ── storage ────────────────────────────────────────────────────────
+
+      async loadStorage() {
+        const res = await this.api('GET', '/studio/api/storage')
+        this.storageBuckets = res.data?.buckets ?? []
+        this.storageFiles = res.data?.files ?? []
+      },
+
+      async deleteFile(bucket, path) {
+        if (!confirm(`Delete ${bucket}/${path}?`)) return
+        const res = await this.api('DELETE', `/storage/${bucket}/${path}`)
+        if (res.error) { this.notify(res.error.message, 'error'); return }
+        this.notify('File deleted')
+        await this.loadStorage()
+      },
+
+      // ── helpers ────────────────────────────────────────────────────────
+
+      async api(method, path, body = null, overrideKey = null) {
+        const headers = {}
+        const key = overrideKey ?? this.apiKey
+        if (key) headers['X-API-Key'] = key
+        if (body !== null) headers['Content-Type'] = 'application/json'
+        const res = await fetch(path, {
+          method,
+          headers,
+          body: body !== null ? JSON.stringify(body) : undefined,
+        })
+        return res.json()
+      },
+
+      // Format a cell value for display (truncate long strings)
+      fmt(v) {
+        if (v === null || v === undefined) return ''
+        const s = typeof v === 'object' ? JSON.stringify(v) : String(v)
+        return s.length > 80 ? s.slice(0, 80) + '…' : s
+      },
+
+      // Full value for title attribute
+      str(v) {
+        if (v === null || v === undefined) return 'null'
+        return typeof v === 'object' ? JSON.stringify(v) : String(v)
+      },
+
+      fmtSize(bytes) {
+        if (bytes < 1024) return bytes + ' B'
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+      },
+
+      notify(msg, type = 'success') {
+        this.toast = { msg, type }
+        setTimeout(() => { this.toast = null }, 3000)
+      },
+    }
+  }
+  </script>
+</body>
+</html>
