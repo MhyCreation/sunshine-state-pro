@@ -10,12 +10,49 @@ import { Logo } from "@/components/ui/logo";
 import { signupSchema, type SignupInput } from "@/lib/schemas";
 import { signupAction } from "@/lib/actions/auth";
 
+const AGREEMENTS = [
+  {
+    field: "ageConfirmed" as const,
+    label: "I confirm that I am at least 18 years of age and a legal resident of an eligible US state.",
+    linkText: null,
+    href: null,
+    suffix: "",
+  },
+  {
+    field: "agreeTerms" as const,
+    label: "I have read and agree to the ",
+    linkText: "Terms of Service",
+    href: "/terms",
+    suffix: ".",
+  },
+  {
+    field: "agreeSweepstakes" as const,
+    label: "I have read and agree to the ",
+    linkText: "Official Sweepstakes Rules",
+    href: "/sweepstakes-rules",
+    suffix: ". No purchase necessary. Void where prohibited.",
+  },
+  {
+    field: "agreePrivacy" as const,
+    label: "I have read and agree to the ",
+    linkText: "Privacy Policy",
+    href: "/privacy",
+    suffix: ", including the collection and use of my personal information.",
+  },
+];
+
 export default function SignupPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      ageConfirmed: false,
+      agreeTerms: false,
+      agreeSweepstakes: false,
+      agreePrivacy: false,
+    },
   });
 
   const onSubmit = (data: SignupInput) => {
@@ -54,19 +91,52 @@ export default function SignupPage() {
           <Input type="password" placeholder="At least 8 characters" {...register("password")} />
           {errors.password && <p className="text-xs text-lose mt-1">{errors.password.message}</p>}
         </div>
+
+        {/* Legal agreements */}
+        <div className="border-t border-casino-600 pt-5 space-y-4">
+          <p className="text-xs text-white/40 uppercase tracking-wider font-medium">Before you continue</p>
+          {AGREEMENTS.map(({ field, label, linkText, href, suffix }) => {
+            const error = errors[field];
+            return (
+              <div key={field}>
+                <label className="flex gap-3 items-start cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    {...register(field)}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border border-casino-500 bg-casino-700 accent-gold-400 cursor-pointer"
+                  />
+                  <span className="text-xs text-white/50 leading-relaxed group-hover:text-white/70 transition-colors">
+                    {label}
+                    {href && linkText ? (
+                      <Link
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gold-400 underline underline-offset-2 hover:text-gold-300"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {linkText}
+                      </Link>
+                    ) : null}
+                    {suffix}
+                  </span>
+                </label>
+                {error && <p className="text-xs text-lose mt-1 ml-7">{error.message}</p>}
+              </div>
+            );
+          })}
+        </div>
+
         {serverError && (
           <div className="rounded-md bg-lose/10 border border-lose/30 px-3 py-2 text-xs text-lose">
             {serverError}
           </div>
         )}
+
         <Button type="submit" variant="gold" className="w-full" size="lg" disabled={pending}>
           {pending ? "Creating account…" : "Claim Free Coins & Play"}
         </Button>
       </form>
-
-      <p className="mt-4 text-xs text-white/30 text-center leading-relaxed">
-        By signing up you confirm you are 18+ and agree to our Terms. No purchase necessary. Void where prohibited.
-      </p>
 
       <p className="mt-4 text-sm text-white/50 text-center">
         Already have an account?{" "}

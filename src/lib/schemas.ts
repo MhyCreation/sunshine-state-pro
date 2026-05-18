@@ -5,6 +5,10 @@ export const signupSchema = z.object({
   password: z.string().min(8, "At least 8 characters"),
   username: z.string().min(3, "At least 3 characters").max(20, "Max 20 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Letters, numbers, and underscores only"),
+  ageConfirmed: z.boolean().refine(v => v === true, { message: "You must confirm you are 18 or older" }),
+  agreeTerms: z.boolean().refine(v => v === true, { message: "You must agree to the Terms of Service" }),
+  agreeSweepstakes: z.boolean().refine(v => v === true, { message: "You must agree to the Official Sweepstakes Rules" }),
+  agreePrivacy: z.boolean().refine(v => v === true, { message: "You must agree to the Privacy Policy" }),
 });
 
 export const loginSchema = z.object({

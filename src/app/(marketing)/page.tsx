@@ -160,11 +160,18 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-casino-700 py-10 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-6">
           <Logo />
-          <p className="text-xs text-white/30 max-w-md text-center md:text-right">
-            SunshineSpins is a sweepstakes casino. No purchase necessary. Sweeps Coins have no cash value until redeemed. Must be 18+. Void where prohibited by law.
-          </p>
+          <div className="flex flex-col gap-3 md:items-end">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/30 md:justify-end">
+              <Link href="/terms" className="hover:text-gold-400 transition-colors">Terms of Service</Link>
+              <Link href="/sweepstakes-rules" className="hover:text-gold-400 transition-colors">Official Sweepstakes Rules</Link>
+              <Link href="/privacy" className="hover:text-gold-400 transition-colors">Privacy Policy</Link>
+            </div>
+            <p className="text-xs text-white/25 max-w-md md:text-right leading-relaxed">
+              SunshineSpins is a sweepstakes entertainment platform. No purchase necessary to obtain Sweeps Coins or win prizes. Sweeps Coins have no cash value until redeemed in accordance with the Official Sweepstakes Rules. Must be 18+. Void where prohibited by law. Gambling problem? Call 1-800-522-4700.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
