@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getRecentTransactions } from "@/lib/actions/wallet";
+import { getRecentTransactions, getRedemptionEligibility } from "@/lib/actions/wallet";
 import { RedemptionForm } from "@/components/casino/redemption-form";
 
 function formatAmount(amount: number, currency: string) {
@@ -18,6 +18,7 @@ export default async function WalletPage() {
     .single();
 
   const transactions = await getRecentTransactions(30);
+  const { hasPlayedWithSC } = await getRedemptionEligibility();
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -67,7 +68,7 @@ export default async function WalletPage() {
       </div>
 
       {/* Redemption */}
-      <RedemptionForm sweepsCoins={parseFloat(String(wallet?.sweeps_coins ?? "0"))} />
+      <RedemptionForm sweepsCoins={parseFloat(String(wallet?.sweeps_coins ?? "0"))} hasPlayedWithSC={hasPlayedWithSC} />
 
       {/* Sweepstakes notice */}
       <div className="bg-casino-800 rounded-xl border border-casino-600 p-4">

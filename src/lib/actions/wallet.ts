@@ -175,6 +175,20 @@ export async function purchaseGoldCoins(
 
 const MIN_REDEMPTION_SC = 100;
 
+export async function getRedemptionEligibility(): Promise<{ hasPlayedWithSC: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { hasPlayedWithSC: false };
+
+  const { count } = await supabase
+    .from("game_sessions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("currency", "sweeps");
+
+  return { hasPlayedWithSC: (count ?? 0) > 0 };
+}
+
 export async function requestRedemption(
   amount: number
 ): Promise<{ success: boolean; error?: string }> {
@@ -184,6 +198,17 @@ export async function requestRedemption(
 
   if (!Number.isFinite(amount) || amount < MIN_REDEMPTION_SC) {
     return { success: false, error: `Minimum redemption is ${MIN_REDEMPTION_SC} SC` };
+  }
+
+  // Must have wagered SC at least once before redeeming
+  const { count: scSessionCount } = await supabase
+    .from("game_sessions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("currency", "sweeps");
+
+  if (!scSessionCount || scSessionCount === 0) {
+    return { success: false, error: "You must play at least one game with Sweeps Coins before redeeming" };
   }
 
   const { data: wallet, error: walletError } = await supabase

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl, TextInput, Alert, A
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useWalletStore } from '@/lib/store';
-import { getWallet, getRecentTransactions, requestRedemption } from '@/lib/actions';
+import { getWallet, getRecentTransactions, requestRedemption, getRedemptionEligibility } from '@/lib/actions';
 import { GradientCard } from '@/components/ui/GradientCard';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
@@ -20,11 +20,17 @@ export default function WalletScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [redeemAmount, setRedeemAmount] = useState('');
   const [redeeming, setRedeeming] = useState(false);
+  const [hasPlayedWithSC, setHasPlayedWithSC] = useState(false);
 
   async function loadData() {
-    const w = await getWallet();
+    const [w, txns, eligibility] = await Promise.all([
+      getWallet(),
+      getRecentTransactions(30),
+      getRedemptionEligibility(),
+    ]);
     if (w) setWallet(Number(w.gold_coins), parseFloat(String(w.sweeps_coins)));
-    setTransactions(await getRecentTransactions(30));
+    setTransactions(txns);
+    setHasPlayedWithSC(eligibility.hasPlayedWithSC);
   }
   useEffect(() => { loadData(); }, []);
   const onRefresh = useCallback(async () => { setRefreshing(true); await loadData(); setRefreshing(false); }, []);
@@ -86,7 +92,15 @@ export default function WalletScreen() {
         {/* Redemption */}
         <Text style={s.sectionLabel}>REDEEM SWEEPS COINS</Text>
         <GradientCard innerStyle={s.redeemInner} style={s.redeemCard}>
-          {sweepsCoins < MIN_SC ? (
+          {!hasPlayedWithSC ? (
+            <View style={s.redeemLocked}>
+              <Text style={s.redeemLockedIcon}>🔒</Text>
+              <Text style={s.redeemLockedTitle}>Play with SC First</Text>
+              <Text style={s.redeemLockedSub}>
+                You must wager Sweeps Coins in at least one game before redeeming. Select 💎 Sweeps mode in any game to unlock withdrawals.
+              </Text>
+            </View>
+          ) : sweepsCoins < MIN_SC ? (
             <View style={s.redeemLocked}>
               <Text style={s.redeemLockedIcon}>🔒</Text>
               <Text style={s.redeemLockedTitle}>100 SC Minimum Required</Text>

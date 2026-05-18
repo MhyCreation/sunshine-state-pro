@@ -5,7 +5,13 @@ import { requestRedemption } from "@/lib/actions/wallet";
 
 const MIN_SC = 100;
 
-export function RedemptionForm({ sweepsCoins }: { sweepsCoins: number }) {
+export function RedemptionForm({
+  sweepsCoins,
+  hasPlayedWithSC,
+}: {
+  sweepsCoins: number;
+  hasPlayedWithSC: boolean;
+}) {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,13 +42,33 @@ export function RedemptionForm({ sweepsCoins }: { sweepsCoins: number }) {
       <div className="bg-casino-800 rounded-xl border border-win/30 p-5 text-center space-y-2">
         <div className="text-3xl">🎉</div>
         <p className="text-win font-semibold text-sm">Redemption request submitted!</p>
-        <p className="text-white/40 text-xs">We'll process your request within 3–5 business days.</p>
+        <p className="text-white/40 text-xs">We&apos;ll process your request within 3–5 business days.</p>
         <button
           className="mt-2 text-xs text-white/40 underline underline-offset-2 hover:text-white/60 transition-colors"
           onClick={() => setSuccess(false)}
         >
           Submit another
         </button>
+      </div>
+    );
+  }
+
+  // Locked: must play with SC first
+  if (!hasPlayedWithSC) {
+    return (
+      <div className="bg-casino-800 rounded-xl border border-casino-600 p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-white font-semibold text-sm">Redeem Sweeps Coins</h3>
+          <span className="text-xs text-white/40">Min. {MIN_SC} SC</span>
+        </div>
+        <div className="bg-casino-700 rounded-lg px-4 py-4 flex flex-col items-center gap-2 text-center">
+          <span className="text-2xl">🔒</span>
+          <p className="text-white/70 text-sm font-medium">Play with SC first</p>
+          <p className="text-white/35 text-xs leading-relaxed">
+            You must wager Sweeps Coins in at least one game before redeeming.
+            Head to any game and select <span className="text-gold-400">💎 Sweeps</span> mode to unlock withdrawals.
+          </p>
+        </div>
       </div>
     );
   }
