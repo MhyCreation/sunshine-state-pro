@@ -8,5 +8,8 @@ out
 *.log
 .vercel
 
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
 # Localbase — runtime data (SQLite file, storage uploads)
 .localbase/
