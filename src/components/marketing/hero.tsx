@@ -24,6 +24,7 @@ export function Hero() {
           <a href="#features" className="hover:text-white transition">Features</a>
           <a href="#pricing" className="hover:text-white transition">Pricing</a>
           <a href="#faq" className="hover:text-white transition">FAQ</a>
+          <a href="#waitlist" className="hover:text-white transition text-gold-400/80 hover:text-gold-400">Join waitlist</a>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm text-white/70 hover:text-white">Sign in</Link>
@@ -79,6 +80,20 @@ export function Hero() {
           <Button variant="outline" size="lg" className="bg-white/5 border-white/20 text-white hover:bg-white/10">
             Watch 2-min demo
           </Button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mt-5"
+        >
+          <a
+            href="#waitlist"
+            className="text-sm text-white/40 hover:text-gold-400 transition underline underline-offset-4 decoration-white/20 hover:decoration-gold-400/50"
+          >
+            Not ready yet? Join the waitlist for personal outreach →
+          </a>
         </motion.div>
 
         <motion.div

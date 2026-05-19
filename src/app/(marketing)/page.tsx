@@ -1,5 +1,6 @@
 import { Hero } from "@/components/marketing/hero";
-import { Features, Pricing, FAQ, CTA, Footer } from "@/components/marketing/sections";
+import { Features, Pricing, FAQ, Footer } from "@/components/marketing/sections";
+import { LeadCapture } from "@/components/marketing/lead-capture";
 
 export default function LandingPage() {
   return (
@@ -8,7 +9,7 @@ export default function LandingPage() {
       <Features />
       <Pricing />
       <FAQ />
-      <CTA />
+      <LeadCapture />
       <Footer />
     </main>
   );
