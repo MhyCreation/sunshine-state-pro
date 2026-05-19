@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Calendar, Users, FileText, Route, Sparkles,
-  BarChart3, Settings, LogOut, KanbanSquare,
+  BarChart3, Settings, LogOut, KanbanSquare, CreditCard,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { logoutAction } from "@/lib/actions/auth";
@@ -19,6 +19,7 @@ const nav = [
   { href: "/dashboard/routes", icon: Route, label: "Routes" },
   { href: "/dashboard/ai", icon: Sparkles, label: "AI assistant" },
   { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
+  { href: "/dashboard/billing", icon: CreditCard, label: "Billing" },
 ];
 
 export function Sidebar({ userName }: { userName: string }) {
