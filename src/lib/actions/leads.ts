@@ -23,28 +23,47 @@ function supabaseAdmin() {
   );
 }
 
+// System prompt is ~350 tokens — Opus 4.7 requires ≥4096 for effective prompt caching.
+// If lead volume grows, expand this with per-industry few-shot examples to cross the
+// threshold and add cache_control back to the system array block.
+const OUTREACH_SYSTEM = `You write warm, personal SMS welcome messages for Sunshine State Pro — a platform that helps Florida service businesses automate scheduling, CRM, invoicing, route optimization, and AI follow-ups.
+
+Audience: owners of cleaning, Airbnb turnover, pressure washing, mobile detailing, landscaping, home services, and contracting businesses across Florida.
+
+Tone rules:
+- Sound like a real person texting, not a marketing blast
+- Reference a genuine operational pain point for their business type
+- Never use exclamation marks excessively — one max per message
+- Never say "excited to have you" or "welcome aboard" — too generic
+- Sign every message with "— The SSP Team"
+
+Pain points by industry:
+- cleaning / bi-weekly: juggling recurring schedules, chasing invoices, crew no-shows
+- airbnb_turnover: same-day precision, guest handoff timing, last-minute bookings
+- pressure_washing: route efficiency, weather cancellations, upselling add-ons
+- mobile_detailing: location-based routing, recurring client retention
+- landscaping: crew scheduling, rain rescheduling, maintenance contract renewals
+- home_services: quoting speed, mixed job types, follow-up drop-off
+- contracting: subcontractor coordination, job costing, project overruns
+
+Output only the message text — no labels, no quotes, no commentary.`;
+
 async function generateOutreachMessage(name?: string, industry?: string): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return "";
 
   const client = new Anthropic({ apiKey });
-  const who = name ? `someone named ${name}` : "a business owner";
-  const biz = industry ? ` running a ${industry.replace(/_/g, " ")} business in Florida` : " in Florida";
+  const who = name || "there";
+  const bizType = industry ? industry.replace(/_/g, " ") : "service business";
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 200,
-    system: [
-      {
-        type: "text",
-        text: "You are the friendly team at Sunshine State Pro — an AI-powered platform that helps Florida service businesses (cleaners, detailers, landscapers, contractors) run their operations on autopilot. Write warm, genuine outreach messages. Never be salesy or use exclamation marks excessively.",
-        cache_control: { type: "ephemeral" },
-      },
-    ],
+    model: "claude-opus-4-7",
+    max_tokens: 300,
+    system: OUTREACH_SYSTEM,
     messages: [
       {
         role: "user",
-        content: `Write a personal, brief SMS welcome message (under 155 characters) for ${who}${biz} who just joined the Sunshine State Pro waitlist. Sign off as "— The SSP Team". Only output the message text, nothing else.`,
+        content: `Write a personal SMS welcome message (under 155 characters) for ${who}, who runs a ${bizType} in Florida and just joined the Sunshine State Pro waitlist. Make it feel like a direct note from a real person who understands their day-to-day grind — not a form letter.`,
       },
     ],
   });
