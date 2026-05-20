@@ -53,18 +53,34 @@ const config: Config = {
         display: ["var(--font-fraunces)", "Georgia", "serif"],
       },
       backgroundImage: {
-        "gradient-gold": "linear-gradient(135deg, #F5C547 0%, #D4A017 100%)",
-        "gradient-navy": "linear-gradient(135deg, #0A1834 0%, #13245A 100%)",
+        "gradient-gold":   "linear-gradient(135deg, #F5C547 0%, #D4A017 100%)",
+        "gradient-navy":   "linear-gradient(135deg, #0A1834 0%, #13245A 100%)",
+        "gradient-anchor": "linear-gradient(135deg, #3D6B9E 0%, #4A8B6F 100%)",
       },
       animation: {
-        "fade-in": "fadeIn 0.6s ease-out",
-        "slide-up": "slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+        "fade-in":    "fadeIn 0.6s ease-out",
+        "slide-up":   "slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+        "pulse-ring": "pulseRing 2.5s ease-in-out infinite",
+        "float":      "float 6s ease-in-out infinite",
+        "dot-bounce": "dotBounce 0.8s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
         slideUp: {
           "0%": { opacity: "0", transform: "translateY(16px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        pulseRing: {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.4" },
+          "50%":      { transform: "scale(1.3)", opacity: "0" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%":      { transform: "translateY(-12px)" },
+        },
+        dotBounce: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%":      { transform: "translateY(-5px)" },
         },
       },
     },
