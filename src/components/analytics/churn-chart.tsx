@@ -12,11 +12,20 @@ import {
   Legend,
 } from "recharts";
 
-const data = Array.from({ length: 12 }, (_, i) => ({
-  month: new Date(2025, i, 1).toLocaleString("default", { month: "short" }),
-  churnRate: parseFloat((5.5 - i * 0.2 + (Math.random() - 0.5) * 0.6).toFixed(1)),
-  ltv: Math.round(85 + i * 6 + Math.random() * 15),
-}));
+const data = [
+  { month: "Jan", churnRate: 5.2, ltv: 85 },
+  { month: "Feb", churnRate: 5.0, ltv: 91 },
+  { month: "Mar", churnRate: 4.8, ltv: 97 },
+  { month: "Apr", churnRate: 4.5, ltv: 103 },
+  { month: "May", churnRate: 4.3, ltv: 109 },
+  { month: "Jun", churnRate: 4.1, ltv: 115 },
+  { month: "Jul", churnRate: 3.9, ltv: 121 },
+  { month: "Aug", churnRate: 3.7, ltv: 127 },
+  { month: "Sep", churnRate: 3.5, ltv: 133 },
+  { month: "Oct", churnRate: 3.4, ltv: 139 },
+  { month: "Nov", churnRate: 3.3, ltv: 145 },
+  { month: "Dec", churnRate: 3.2, ltv: 151 },
+];
 
 export function ChurnChart() {
   return (
@@ -29,7 +38,12 @@ export function ChurnChart() {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E7EAF2" />
-            <XAxis dataKey="month" tick={{ fill: "#9AA5C2", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: "#9AA5C2", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
             <YAxis
               yAxisId="left"
               tick={{ fill: "#9AA5C2", fontSize: 11 }}
@@ -58,7 +72,7 @@ export function ChurnChart() {
             <ReferenceLine
               yAxisId="left"
               y={5}
-              stroke="#EF444470"
+              stroke="rgba(239,68,68,0.4)"
               strokeDasharray="4 4"
             />
             <Line

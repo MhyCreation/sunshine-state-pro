@@ -11,12 +11,20 @@ import {
   Legend,
 } from "recharts";
 
-const data = Array.from({ length: 12 }, (_, i) => ({
-  month: new Date(2025, i, 1).toLocaleString("default", { month: "short" }),
-  mrr: Math.round(5000 + i * 800 + Math.random() * 400),
-  new: Math.round(600 + i * 80 + Math.random() * 150),
-  churned: Math.round(150 + Math.random() * 100),
-}));
+const data = [
+  { month: "Jan", mrr: 5400, new: 640, churned: 180 },
+  { month: "Feb", mrr: 6200, new: 720, churned: 160 },
+  { month: "Mar", mrr: 7100, new: 800, churned: 190 },
+  { month: "Apr", mrr: 7800, new: 750, churned: 200 },
+  { month: "May", mrr: 8600, new: 830, churned: 170 },
+  { month: "Jun", mrr: 9300, new: 880, churned: 220 },
+  { month: "Jul", mrr: 10100, new: 910, churned: 210 },
+  { month: "Aug", mrr: 10900, new: 950, churned: 230 },
+  { month: "Sep", mrr: 11600, new: 980, churned: 240 },
+  { month: "Oct", mrr: 12400, new: 1020, churned: 250 },
+  { month: "Nov", mrr: 13200, new: 1060, churned: 260 },
+  { month: "Dec", mrr: 14230, new: 1100, churned: 270 },
+];
 
 export function MrrChart() {
   return (
@@ -39,7 +47,12 @@ export function MrrChart() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#E7EAF2" />
-            <XAxis dataKey="month" tick={{ fill: "#9AA5C2", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: "#9AA5C2", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
             <YAxis
               tick={{ fill: "#9AA5C2", fontSize: 11 }}
               axisLine={false}
@@ -64,8 +77,20 @@ export function MrrChart() {
                 v === "mrr" ? "Total MRR" : v === "new" ? "New MRR" : "Churned MRR"
               }
             />
-            <Area type="monotone" dataKey="mrr" stroke="#D4A017" strokeWidth={2} fill="url(#mrrGrad)" />
-            <Area type="monotone" dataKey="new" stroke="#10B981" strokeWidth={2} fill="url(#newGrad)" />
+            <Area
+              type="monotone"
+              dataKey="mrr"
+              stroke="#D4A017"
+              strokeWidth={2}
+              fill="url(#mrrGrad)"
+            />
+            <Area
+              type="monotone"
+              dataKey="new"
+              stroke="#10B981"
+              strokeWidth={2}
+              fill="url(#newGrad)"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

@@ -11,11 +11,20 @@ import {
   Legend,
 } from "recharts";
 
-const data = Array.from({ length: 12 }, (_, i) => ({
-  month: new Date(2025, i, 1).toLocaleString("default", { month: "short" }),
-  new: Math.round(120 + i * 15 + Math.random() * 35),
-  churned: Math.round(28 + Math.random() * 22),
-}));
+const data = [
+  { month: "Jan", new: 122, churned: 32 },
+  { month: "Feb", new: 138, churned: 29 },
+  { month: "Mar", new: 151, churned: 35 },
+  { month: "Apr", new: 164, churned: 31 },
+  { month: "May", new: 178, churned: 38 },
+  { month: "Jun", new: 192, churned: 34 },
+  { month: "Jul", new: 205, churned: 40 },
+  { month: "Aug", new: 214, churned: 37 },
+  { month: "Sep", new: 220, churned: 42 },
+  { month: "Oct", new: 228, churned: 44 },
+  { month: "Nov", new: 231, churned: 41 },
+  { month: "Dec", new: 234, churned: 46 },
+];
 
 export function SubscriberChart() {
   return (
@@ -28,8 +37,17 @@ export function SubscriberChart() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E7EAF2" />
-            <XAxis dataKey="month" tick={{ fill: "#9AA5C2", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "#9AA5C2", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fill: "#9AA5C2", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fill: "#9AA5C2", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
             <Tooltip
               contentStyle={{
                 background: "#0A1834",
