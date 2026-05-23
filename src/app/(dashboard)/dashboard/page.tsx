@@ -1,19 +1,29 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/localbase/server";
 import { Sparkles, Bell, ArrowUpRight } from "lucide-react";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 
+type Membership = { full_name: string; business_id: string };
+type Business = { id: string; name: string };
+type AuthUser = { id: string; email?: string };
+
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const lb = await createClient();
+  const { data: user } = await lb.auth.getUser() as { data: AuthUser | null; error: unknown };
 
-  const { data: membership } = await supabase
-    .from("business_members")
-    .select("full_name, businesses(name)")
-    .eq("user_id", user!.id)
-    .maybeSingle();
+  const { data: memberRows } = await lb
+    .table<Membership>("business_members")
+    .query()
+    .where({ user_id: user!.id })
+    .limit(1)
+    .run();
 
-  // @ts-expect-error supabase typed-join
-  const businessName = membership?.businesses?.name ?? "your business";
+  const membership = memberRows?.[0] ?? null;
+  let businessName = "your business";
+  if (membership?.business_id) {
+    const { data: biz } = await lb.table<Business>("businesses").get(membership.business_id);
+    businessName = (biz as Business | null)?.name ?? "your business";
+  }
+
   const firstName = (membership?.full_name ?? user?.email ?? "").split(" ")[0];
 
   const today = new Intl.DateTimeFormat("en-US", {

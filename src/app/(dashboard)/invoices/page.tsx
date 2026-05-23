@@ -80,7 +80,6 @@ export default async function InvoicesPage() {
             </thead>
             <tbody className="divide-y divide-navy-50">
               {invoices.map((inv) => {
-                // @ts-expect-error supabase join typing
                 const customer = inv.customers;
                 return (
                   <tr key={inv.id} className="hover:bg-navy-50/40 transition">

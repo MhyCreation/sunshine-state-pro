@@ -1,41 +1,96 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { createClient } from "@/lib/localbase/server";
+
+type Membership = { business_id: string; role: string };
+
+type JobRow = {
+  id: string;
+  business_id: string;
+  customer_id: string | null;
+  created_by: string | null;
+  title: string;
+  service_type: string | null;
+  status: string;
+  scheduled_start: string;
+  scheduled_end: string | null;
+  actual_start: string | null;
+  actual_end: string | null;
+  address: string | null;
+  estimated_price: number | null;
+  final_price: number | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type CustomerRow = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+};
+
+export type Job = JobRow & {
+  customers: { id: string; full_name: string; phone: string | null } | null;
+};
 
 async function getBusiness() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { supabase, business_id: null, user_id: null };
-  const { data } = await supabase
-    .from("business_members")
-    .select("business_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  return { supabase, business_id: data?.business_id ?? null, user_id: user.id };
+  const lb = await createClient();
+  const { data: user, error } = await lb.auth.getUser();
+  if (error || !user) return { lb, user: null, business_id: null };
+
+  const { data: rows } = await lb
+    .table<Membership>("business_members")
+    .query()
+    .where({ user_id: user.id })
+    .limit(1)
+    .run();
+
+  const business_id = rows?.[0]?.business_id ?? null;
+  return { lb, user, business_id };
 }
 
 export async function getJobs(opts?: { from?: string; to?: string; status?: string }) {
-  const { supabase, business_id } = await getBusiness();
+  const { lb, business_id } = await getBusiness();
   if (!business_id) return [];
 
-  let query = supabase
-    .from("jobs")
-    .select(`
-      id, title, status, scheduled_start, scheduled_end,
-      address, estimated_price, final_price,
-      customers(id, full_name, phone)
-    `)
-    .eq("business_id", business_id)
-    .order("scheduled_start", { ascending: true });
+  const filter: Record<string, string | number | boolean | null | string[]> = { business_id };
+  if (opts?.from) filter["scheduled_start.gte"] = opts.from;
+  if (opts?.to) filter["scheduled_start.lte"] = opts.to;
+  if (opts?.status) filter["status"] = opts.status;
 
-  if (opts?.from) query = query.gte("scheduled_start", opts.from);
-  if (opts?.to) query = query.lte("scheduled_start", opts.to);
-  if (opts?.status) query = query.eq("status", opts.status);
+  const { data: jobs } = await lb
+    .table<JobRow>("jobs")
+    .query()
+    .where(filter)
+    .order("scheduled_start", "asc")
+    .run();
 
-  const { data } = await query;
-  return data ?? [];
+  if (!jobs?.length) return (jobs ?? []) as Job[];
+
+  // Fetch related customers in a single IN query and merge
+  const customerIds = [...new Set(jobs.map((j) => j.customer_id).filter((id): id is string => !!id))];
+
+  let customersById: Record<string, CustomerRow> = {};
+  if (customerIds.length > 0) {
+    const { data: customers } = await lb
+      .table<CustomerRow>("customers")
+      .query()
+      .where({ "id.in": customerIds })
+      .limit(1000)
+      .run();
+
+    customersById = Object.fromEntries((customers ?? []).map((c) => [c.id, c]));
+  }
+
+  return jobs.map((job): Job => ({
+    ...job,
+    customers: job.customer_id && customersById[job.customer_id]
+      ? { id: customersById[job.customer_id].id, full_name: customersById[job.customer_id].full_name, phone: customersById[job.customer_id].phone }
+      : null,
+  }));
 }
 
 const createJobSchema = z.object({
@@ -50,7 +105,7 @@ const createJobSchema = z.object({
 });
 
 export async function createJob(formData: FormData) {
-  const { supabase, business_id, user_id } = await getBusiness();
+  const { lb, user, business_id } = await getBusiness();
   if (!business_id) return { error: "Not authenticated" };
 
   const parsed = createJobSchema.safeParse({
@@ -66,10 +121,10 @@ export async function createJob(formData: FormData) {
 
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const { error } = await supabase.from("jobs").insert({
+  const { error } = await lb.table("jobs").insert({
     ...parsed.data,
     business_id,
-    created_by: user_id,
+    created_by: user!.id,
     customer_id: parsed.data.customer_id || null,
     scheduled_end: parsed.data.scheduled_end || null,
     status: "scheduled",
@@ -84,20 +139,21 @@ export async function updateJobStatus(
   id: string,
   status: "quoted" | "scheduled" | "in_progress" | "completed" | "cancelled" | "invoiced"
 ) {
-  const { supabase, business_id } = await getBusiness();
+  const { lb, business_id } = await getBusiness();
   if (!business_id) return { error: "Not authenticated" };
 
-  const updates: Record<string, unknown> = { status };
+  const { data: existing } = await lb.table<JobRow>("jobs").get(id);
+  if (!existing || existing.business_id !== business_id) {
+    return { error: "Not found" };
+  }
+
+  const updates: Partial<JobRow> & Record<string, unknown> = { status };
   if (status === "in_progress") updates.actual_start = new Date().toISOString();
   if (status === "completed") updates.actual_end = new Date().toISOString();
 
-  const { error } = await supabase
-    .from("jobs")
-    .update(updates)
-    .eq("id", id)
-    .eq("business_id", business_id);
-
+  const { error } = await lb.table<JobRow>("jobs").update(id, updates);
   if (error) return { error: error.message };
+
   revalidatePath("/dashboard/schedule");
   return { success: true };
 }

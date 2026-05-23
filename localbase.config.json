@@ -1,0 +1,5 @@
+{
+  "port": 7700,
+  "dataDir": ".localbase",
+  "jwtSecret": "replace-this-with-a-64-char-random-string-before-use"
+}

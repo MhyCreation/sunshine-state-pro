@@ -4,7 +4,10 @@
       "Bash(gh auth *)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(cp \"/root/.claude/projects/-home-user-sunshine-state-pro/73727153-2b62-44e1-874e-49ea07a393b9/tool-results/webfetch-1779499472849-mym5km.bin\" /tmp/design.bin)",
+      "Read(//tmp/**)",
+      "Bash(gunzip -c /tmp/design.bin)"
     ]
   }
 }

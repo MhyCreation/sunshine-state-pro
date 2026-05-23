@@ -1,37 +1,64 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { createClient } from "@/lib/localbase/server";
+
+type Membership = { business_id: string; role: string };
+
+export type Customer = {
+  id: string;
+  business_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  notes: string | null;
+  status: "lead" | "active" | "inactive" | "churned";
+  lifetime_value: number | null;
+  last_service_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 async function getBusiness() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { supabase, business_id: null };
-  const { data } = await supabase
-    .from("business_members")
-    .select("business_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  return { supabase, business_id: data?.business_id ?? null };
+  const lb = await createClient();
+  const { data: user, error } = await lb.auth.getUser();
+  if (error || !user) return { lb, user: null, business_id: null };
+
+  const { data: rows } = await lb
+    .table<Membership>("business_members")
+    .query()
+    .where({ user_id: user.id })
+    .limit(1)
+    .run();
+
+  const business_id = rows?.[0]?.business_id ?? null;
+  return { lb, user, business_id };
 }
 
 export async function getCustomers(search?: string) {
-  const { supabase, business_id } = await getBusiness();
+  const { lb, business_id } = await getBusiness();
   if (!business_id) return [];
 
-  let query = supabase
-    .from("customers")
-    .select("id, full_name, email, phone, status, lifetime_value, last_service_at, created_at")
-    .eq("business_id", business_id)
-    .order("created_at", { ascending: false });
+  const { data } = await lb
+    .table<Customer>("customers")
+    .query()
+    .where({ business_id })
+    .order("created_at", "desc")
+    .run();
 
-  if (search) {
-    query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
-  }
+  if (!data) return [];
 
-  const { data } = await query;
-  return data ?? [];
+  // Client-side search filter (localbase REST doesn't support OR across columns yet)
+  if (!search) return data;
+  const q = search.toLowerCase();
+  return data.filter((c) =>
+    (c.full_name ?? "").toLowerCase().includes(q) ||
+    (c.email ?? "").toLowerCase().includes(q) ||
+    (c.phone ?? "").toLowerCase().includes(q)
+  );
 }
 
 const createCustomerSchema = z.object({
@@ -44,7 +71,7 @@ const createCustomerSchema = z.object({
 });
 
 export async function createCustomer(formData: FormData) {
-  const { supabase, business_id } = await getBusiness();
+  const { lb, business_id } = await getBusiness();
   if (!business_id) return { error: "Not authenticated" };
 
   const parsed = createCustomerSchema.safeParse({
@@ -58,7 +85,7 @@ export async function createCustomer(formData: FormData) {
 
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const { error } = await supabase.from("customers").insert({
+  const { error } = await lb.table("customers").insert({
     ...parsed.data,
     business_id,
     email: parsed.data.email || null,
@@ -69,17 +96,21 @@ export async function createCustomer(formData: FormData) {
   return { success: true };
 }
 
-export async function updateCustomerStatus(id: string, status: "lead" | "active" | "inactive" | "churned") {
-  const { supabase, business_id } = await getBusiness();
+export async function updateCustomerStatus(
+  id: string,
+  status: "lead" | "active" | "inactive" | "churned"
+) {
+  const { lb, business_id } = await getBusiness();
   if (!business_id) return { error: "Not authenticated" };
 
-  const { error } = await supabase
-    .from("customers")
-    .update({ status })
-    .eq("id", id)
-    .eq("business_id", business_id);
+  const { data: existing } = await lb.table<Customer>("customers").get(id);
+  if (!existing || existing.business_id !== business_id) {
+    return { error: "Not found" };
+  }
 
+  const { error } = await lb.table<Customer>("customers").update(id, { status });
   if (error) return { error: error.message };
+
   revalidatePath("/dashboard/customers");
   return { success: true };
 }

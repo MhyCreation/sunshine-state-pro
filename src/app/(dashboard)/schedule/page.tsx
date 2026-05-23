@@ -162,7 +162,6 @@ export default async function SchedulePage({
                     <div className="space-y-2">
                       {grouped[dateKey].map((job) => {
                         const style = STATUS_STYLES[job.status] ?? STATUS_STYLES.scheduled;
-                        // @ts-expect-error supabase join typing
                         const customer = job.customers;
                         return (
                           <div
