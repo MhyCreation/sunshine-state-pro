@@ -17,6 +17,10 @@ const nav = [
   { href: "/games/blackjack", icon: Diamond, label: "Blackjack" },
   { href: "/games/poker", icon: Club, label: "Poker" },
   { href: "/games/roulette", icon: Heart, label: "Roulette" },
+  { href: "/games/keno", icon: Diamond, label: "Keno" },
+  { href: "/games/crash", icon: Spade, label: "Crash" },
+  { href: "/games/baccarat", icon: Club, label: "Baccarat" },
+  { href: "/games/mines", icon: Heart, label: "Mines" },
   { href: "/wallet", icon: Wallet, label: "Wallet" },
   { href: "/shop", icon: ShoppingBag, label: "Coin Shop" },
 ];

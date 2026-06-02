@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-export type GameType = "slots" | "blackjack" | "poker" | "roulette";
+export type GameType = "slots" | "blackjack" | "poker" | "roulette" | "keno" | "crash" | "baccarat" | "mines";
 export type CurrencyType = "gold" | "sweeps";
 
 export async function placeBet(

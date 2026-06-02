@@ -2,10 +2,14 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter, Stack } from 'expo-router';
 
 const GAMES = [
-  { path: 'blackjack', emoji: '🃏', name: '21 Royale',       subtitle: 'Blackjack',   desc: 'Beat the dealer to 21 · Blackjack 3:2',    rtp: '99.5%', hot: false },
-  { path: 'slots',     emoji: '🎰', name: 'Lucky Spins',     subtitle: 'Slots',       desc: '5 reels · 9 paylines · Wild bonus',          rtp: '96%',   hot: true  },
-  { path: 'poker',     emoji: '♣️',  name: 'Jacks or Better', subtitle: 'Video Poker', desc: '5-card draw · Royal Flush 800×',             rtp: '99.5%', hot: false },
-  { path: 'roulette',  emoji: '🎡', name: 'Grand Roulette',  subtitle: 'Roulette',    desc: 'European wheel · 37 numbers · 0–36',        rtp: '97.3%', hot: false },
+  { path: 'blackjack', emoji: '🃏', name: '21 Royale',       subtitle: 'Blackjack',   desc: 'Beat the dealer to 21 · Blackjack 3:2',      rtp: '99.5%', hot: false },
+  { path: 'slots',     emoji: '🎰', name: 'Lucky Spins',     subtitle: 'Slots',       desc: '5 reels · 9 paylines · Wild bonus',            rtp: '96%',   hot: true  },
+  { path: 'poker',     emoji: '♣️',  name: 'Jacks or Better', subtitle: 'Video Poker', desc: '5-card draw · Royal Flush 800×',               rtp: '99.5%', hot: false },
+  { path: 'roulette',  emoji: '🎡', name: 'Grand Roulette',  subtitle: 'Roulette',    desc: 'European wheel · 37 numbers · 0–36',          rtp: '97.3%', hot: false },
+  { path: 'keno',      emoji: '🎱', name: 'Keno',            subtitle: 'Keno',        desc: 'Pick up to 10 numbers · 20 drawn · Big wins',  rtp: '92%',   hot: true  },
+  { path: 'crash',     emoji: '🚀', name: 'Crash',           subtitle: 'Crash',       desc: 'Cash out before it crashes · Multiplier grows', rtp: '97%',   hot: true  },
+  { path: 'baccarat',  emoji: '🎴', name: 'Baccarat',        subtitle: 'Baccarat',    desc: 'Player vs Banker · Tie pays 8:1',              rtp: '98.9%', hot: false },
+  { path: 'mines',     emoji: '💣', name: 'Mines',           subtitle: 'Mines',       desc: 'Reveal gems · Avoid mines · Cash out anytime', rtp: '97%',   hot: false },
 ];
 
 export default function GamesListScreen() {
