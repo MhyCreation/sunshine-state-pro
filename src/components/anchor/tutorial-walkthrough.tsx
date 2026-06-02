@@ -21,6 +21,8 @@ import {
   FileText,
   UserCheck,
   Globe,
+  User,
+  RefreshCw,
 } from "lucide-react";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -269,7 +271,210 @@ function WelcomeScreen() {
   );
 }
 
-// ─── Screen 1 — Habit picker ──────────────────────────────────────────────────
+// ─── Profile helpers ──────────────────────────────────────────────────────────
+const P_ADJ  = ["Calm","Brave","Gentle","Quiet","Steady","Hopeful","Strong","Warm","Serene","Bold"];
+const P_NOUN = ["Fox","Owl","Deer","Bear","Hawk","Wolf","Lynx","Crane","Otter","Elk"];
+function generateUsername() {
+  const adj   = P_ADJ[Math.floor(Math.random() * P_ADJ.length)];
+  const noun  = P_NOUN[Math.floor(Math.random() * P_NOUN.length)];
+  const num   = Math.floor(1000 + Math.random() * 9000);
+  return `${adj}${noun}#${num}`;
+}
+
+const ACCENTS = [
+  { from: "#3D6B9E", to: "#4A8B6F" },
+  { from: "#7B5EA7", to: "#A67FD4" },
+  { from: "#C0433A", to: "#E07850" },
+  { from: "#B8860B", to: "#F0B86E" },
+  { from: "#1B6B3A", to: "#52B788" },
+  { from: "#1A4B7A", to: "#5B9BD5" },
+];
+
+const AVATARS = ["🦋", "🌿", "⭐", "🌊", "🔥", "🌸", "🦅", "🌙"];
+
+// ─── Screen 1 — Profile setup ─────────────────────────────────────────────────
+function ProfileSetupScreen() {
+  const [name,     setName]     = useState("");
+  const [avatar,   setAvatar]   = useState("🦋");
+  const [accent,   setAccent]   = useState(0);
+  const [username, setUsername] = useState(() => generateUsername());
+
+  const ac          = ACCENTS[accent];
+  const displayName = name.trim() || "Your name";
+
+  return (
+    <div className="h-full flex flex-col px-5 pt-4 pb-3 overflow-y-auto" style={{ background: C.deep }}>
+      <Label>Step 1 of 4</Label>
+
+      <motion.h2
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+        style={{ color: C.t.primary, fontSize: 21, fontWeight: 700, lineHeight: 1.2, marginTop: 6, fontFamily: "var(--font-fraunces)" }}
+      >
+        Create your profile
+      </motion.h2>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.14 }}
+        style={{ color: C.t.secondary, fontSize: 12.5, marginTop: 4, lineHeight: 1.5 }}
+      >
+        Only you see your real name. The community sees only your anonymous username.
+      </motion.p>
+
+      {/* Live preview card */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-4 p-3 rounded-2xl flex items-center gap-3"
+        style={{
+          background: `linear-gradient(135deg, ${ac.from}22, ${ac.to}16)`,
+          border: `1.5px solid ${ac.from}44`,
+          transition: "all 0.3s ease",
+        }}
+      >
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${ac.from}, ${ac.to})`,
+            boxShadow: `0 4px 16px ${ac.from}44`,
+            transition: "all 0.3s ease",
+          }}
+        >
+          {avatar}
+        </div>
+        <div className="min-w-0">
+          <div style={{ color: C.t.primary, fontSize: 15, fontWeight: 700 }}>{displayName}</div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: C.mint }} />
+            <span style={{ color: C.t.muted, fontSize: 10.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+              {username}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Display name */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.27 }}
+        className="mt-4"
+      >
+        <Label>Display name</Label>
+        <div
+          className="mt-1.5 flex items-center px-3.5 py-2.5 rounded-xl gap-2"
+          style={{
+            background: C.card,
+            border: `1.5px solid ${name ? ac.from + "66" : C.border}`,
+            transition: "border-color 0.2s",
+          }}
+        >
+          <User size={13} style={{ color: C.t.muted, flexShrink: 0 }} />
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value.slice(0, 24))}
+            placeholder="e.g. Jordan, M., or just 'Me'"
+            maxLength={24}
+            className="flex-1 bg-transparent outline-none placeholder:text-white/25"
+            style={{ color: C.t.primary, fontSize: 13, caretColor: ac.from }}
+          />
+          {name && (
+            <span style={{ color: C.t.muted, fontSize: 10, flexShrink: 0 }}>{name.length}/24</span>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Avatar picker */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33 }}
+        className="mt-3.5"
+      >
+        <Label>Avatar</Label>
+        <div className="flex gap-2 mt-1.5">
+          {AVATARS.map((a) => (
+            <button
+              key={a}
+              onClick={() => setAvatar(a)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{
+                background: avatar === a ? `linear-gradient(135deg, ${ac.from}44, ${ac.to}33)` : C.card,
+                border: `1.5px solid ${avatar === a ? ac.from + "88" : C.border}`,
+                transform: avatar === a ? "scale(1.13)" : "scale(1)",
+                transition: "all 0.18s ease",
+              }}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Journey color */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.38 }}
+        className="mt-3.5"
+      >
+        <Label>Journey color</Label>
+        <div className="flex gap-2 mt-1.5">
+          {ACCENTS.map((a, i) => (
+            <button
+              key={i}
+              onClick={() => setAccent(i)}
+              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${a.from}, ${a.to})`,
+                border: accent === i ? "2.5px solid #fff" : "2.5px solid transparent",
+                boxShadow: accent === i ? `0 0 0 1.5px ${a.from}, 0 2px 8px ${a.from}55` : "none",
+                transition: "all 0.18s ease",
+              }}
+            >
+              {accent === i && <Check size={10} color="#fff" strokeWidth={3} />}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Anonymous username */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.44 }}
+        className="mt-3.5"
+      >
+        <Label>Community username</Label>
+        <div className="flex items-center gap-2 mt-1.5">
+          <div
+            className="flex-1 px-3.5 py-2.5 rounded-xl"
+            style={{ background: C.card, border: `1px solid ${C.border}` }}
+          >
+            <span style={{ color: C.t.secondary, fontSize: 12.5 }}>{username}</span>
+          </div>
+          <button
+            onClick={() => setUsername(generateUsername())}
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: C.card, border: `1px solid ${C.border}`, color: C.t.muted, cursor: "pointer" }}
+            title="Generate new username"
+          >
+            <RefreshCw size={13} />
+          </button>
+        </div>
+        <p style={{ color: C.t.muted, fontSize: 10.5, marginTop: 5, lineHeight: 1.5 }}>
+          Randomly generated · Tap 🔄 to shuffle · Never tied to your real identity
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Screen 2 — Habit picker ──────────────────────────────────────────────────
 function HabitPickerScreen() {
   const [selected, setSelected] = useState<string[]>(["Social Media"]);
   const toggle = (id: string) =>
@@ -286,7 +491,7 @@ function HabitPickerScreen() {
 
   return (
     <div className="h-full flex flex-col px-5 pt-4 pb-3" style={{ background: C.deep }}>
-      <Label>Step 1 of 4</Label>
+      <Label>Step 2 of 4</Label>
       <motion.h2
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1389,6 +1594,13 @@ const SCREENS = [
     group:    "Start",
     features: ["Shame-free design", "Always available", "Private & secure"],
     Component: WelcomeScreen,
+  },
+  {
+    label:    "My Profile",
+    subtitle: "Make Anchor yours from day one",
+    group:    "Onboarding",
+    features: ["Custom display name", "Choose your avatar", "Anonymous community ID"],
+    Component: ProfileSetupScreen,
   },
   {
     label:    "Your Habits",
