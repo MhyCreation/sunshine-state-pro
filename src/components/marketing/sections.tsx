@@ -209,15 +209,65 @@ export function CTA() {
 
 export function Footer() {
   return (
-    <footer className="bg-navy-900 text-white/60 py-10 text-sm">
-      <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5">
-          <div className="h-6 w-6 rounded-md bg-gradient-gold flex items-center justify-center">
-            <span className="text-navy-800 font-display font-bold text-sm">S</span>
+    <footer className="bg-navy-900 text-white/60 text-sm">
+      <div className="mx-auto max-w-7xl px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="col-span-2 md:col-span-1">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="h-6 w-6 rounded-md bg-gradient-gold flex items-center justify-center">
+              <span className="text-navy-800 font-display font-bold text-sm">S</span>
+            </div>
+            <span className="font-display text-white">Sunshine State Pro</span>
           </div>
-          <span className="font-display">Sunshine State Pro</span>
+          <p className="text-white/40 text-xs leading-relaxed max-w-[200px]">
+            The operating system for Florida service businesses.
+          </p>
         </div>
-        <div>© {new Date().getFullYear()} Sunshine State Pro. Built in Florida.</div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-white/30 mb-3">Product</div>
+          <ul className="space-y-2">
+            <li><a href="#features" className="hover:text-white transition">Features</a></li>
+            <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
+            <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
+            <li><Link href="/signup" className="hover:text-white transition">Start free trial</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-white/30 mb-3">Account</div>
+          <ul className="space-y-2">
+            <li><Link href="/login" className="hover:text-white transition">Sign in</Link></li>
+            <li><Link href="/signup" className="hover:text-white transition">Sign up</Link></li>
+            <li><Link href="/dashboard" className="hover:text-white transition">Dashboard</Link></li>
+            <li><Link href="/dashboard/billing" className="hover:text-white transition">Billing</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-white/30 mb-3">Legal</div>
+          <ul className="space-y-2">
+            <li><Link href="/terms" className="hover:text-white transition">Terms of Service</Link></li>
+            <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
+          </ul>
+          <div className="text-[10px] uppercase tracking-wider text-white/30 mb-3 mt-6">Contact</div>
+          <ul className="space-y-2">
+            <li>
+              <a href="mailto:hello@sunshinestatepro.com" className="hover:text-white transition">
+                hello@sunshinestatepro.com
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Sunshine State Pro LLC. Built in Florida. 🌴</p>
+          <div className="flex items-center gap-4 text-xs text-white/30">
+            <Link href="/terms" className="hover:text-white/60 transition">Terms</Link>
+            <Link href="/privacy" className="hover:text-white/60 transition">Privacy</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

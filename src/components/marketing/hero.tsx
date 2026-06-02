@@ -76,9 +76,11 @@ export function Hero() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Button>
           </Link>
-          <Button variant="outline" size="lg" className="bg-white/5 border-white/20 text-white hover:bg-white/10">
-            Watch 2-min demo
-          </Button>
+          <a href="#features">
+            <Button variant="outline" size="lg" className="bg-white/5 border-white/20 text-white hover:bg-white/10">
+              Explore features
+            </Button>
+          </a>
         </motion.div>
 
         <motion.div
