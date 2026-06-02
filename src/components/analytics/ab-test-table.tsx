@@ -1,3 +1,5 @@
+"use client";
+
 interface AbTest {
   id: string;
   name: string;
@@ -28,11 +30,11 @@ const mockTests: AbTest[] = [
   },
 ];
 
-function convRate(c: number, i: number) {
-  return i > 0 ? ((c / i) * 100).toFixed(1) + "%" : "—";
+function convRate(c: number, impressions: number) {
+  return impressions > 0 ? ((c / impressions) * 100).toFixed(1) + "%" : "—";
 }
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<AbTest["status"], string> = {
   active: "bg-emerald-100 text-emerald-700",
   completed: "bg-navy-100 text-navy-600",
   paused: "bg-gold-100 text-gold-700",
@@ -76,13 +78,17 @@ export function AbTestTable() {
                   <p className="font-medium text-navy-800">
                     {convRate(test.variantA.conversions, test.variantA.impressions)}
                   </p>
-                  <p className="text-xs text-navy-400">{test.variantA.impressions.toLocaleString()} impr.</p>
+                  <p className="text-xs text-navy-400">
+                    {test.variantA.impressions.toLocaleString()} impr.
+                  </p>
                 </td>
                 <td className="px-4 py-4 text-right">
                   <p className="font-medium text-navy-800">
                     {convRate(test.variantB.conversions, test.variantB.impressions)}
                   </p>
-                  <p className="text-xs text-navy-400">{test.variantB.impressions.toLocaleString()} impr.</p>
+                  <p className="text-xs text-navy-400">
+                    {test.variantB.impressions.toLocaleString()} impr.
+                  </p>
                 </td>
                 <td className="px-4 py-4 text-center">
                   {test.winner ? (
@@ -90,7 +96,7 @@ export function AbTestTable() {
                       Variant {test.winner.toUpperCase()}
                     </span>
                   ) : (
-                    "—"
+                    <span className="text-navy-300">&mdash;</span>
                   )}
                 </td>
               </tr>

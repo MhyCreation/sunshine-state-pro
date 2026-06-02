@@ -49,7 +49,7 @@ export function ChurnChart() {
               tick={{ fill: "#9AA5C2", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `${v}%`}
+              tickFormatter={(v: number) => `${v}%`}
             />
             <YAxis
               yAxisId="right"
@@ -57,7 +57,7 @@ export function ChurnChart() {
               tick={{ fill: "#9AA5C2", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `$${v}`}
+              tickFormatter={(v: number) => `$${v}`}
             />
             <Tooltip
               contentStyle={{

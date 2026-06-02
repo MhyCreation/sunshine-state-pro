@@ -39,17 +39,21 @@ export function PaywallFunnel({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-4 gap-2 mb-5">
         <div className="bg-navy-50 rounded-lg p-3 text-center">
-          <p className="text-lg font-semibold text-navy-800">{impressions.toLocaleString()}</p>
+          <p className="text-base font-semibold text-navy-800">{impressions.toLocaleString()}</p>
           <p className="text-xs text-navy-400 mt-0.5">Impressions</p>
         </div>
         <div className="bg-navy-50 rounded-lg p-3 text-center">
-          <p className="text-lg font-semibold text-navy-800">{conversions.toLocaleString()}</p>
+          <p className="text-base font-semibold text-navy-800">{conversions.toLocaleString()}</p>
           <p className="text-xs text-navy-400 mt-0.5">Conversions</p>
         </div>
+        <div className="bg-red-50 rounded-lg p-3 text-center">
+          <p className="text-base font-semibold text-red-600">{declines.toLocaleString()}</p>
+          <p className="text-xs text-navy-400 mt-0.5">Declines</p>
+        </div>
         <div className="bg-gold-50 rounded-lg p-3 text-center">
-          <p className="text-lg font-semibold text-gold-700">${revenue.toLocaleString()}</p>
+          <p className="text-base font-semibold text-gold-700">${revenue.toLocaleString()}</p>
           <p className="text-xs text-navy-400 mt-0.5">Revenue</p>
         </div>
       </div>

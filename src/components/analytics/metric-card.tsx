@@ -19,11 +19,15 @@ export function MetricCard({
   description,
 }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-navy-100 p-5 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-medium text-navy-400 uppercase tracking-wider">{title}</p>
-          <p className="mt-2 text-2xl font-display font-semibold text-navy-800">{value}</p>
+    <div className="bg-white rounded-xl border border-navy-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-navy-400 uppercase tracking-wider truncate">
+            {title}
+          </p>
+          <p className="mt-2 text-2xl font-display font-semibold text-navy-800 tabular-nums">
+            {value}
+          </p>
           {change && (
             <p
               className={cn(
@@ -38,11 +42,13 @@ export function MetricCard({
               {change}
             </p>
           )}
-          {description && <p className="mt-0.5 text-xs text-navy-400">{description}</p>}
+          {description && (
+            <p className="mt-0.5 text-xs text-navy-400">{description}</p>
+          )}
         </div>
         {Icon && (
           <div className="h-10 w-10 rounded-lg bg-navy-50 flex items-center justify-center shrink-0">
-            <Icon className="h-5 w-5 text-navy-400" />
+            <Icon className="h-5 w-5 text-navy-400" aria-hidden="true" />
           </div>
         )}
       </div>
