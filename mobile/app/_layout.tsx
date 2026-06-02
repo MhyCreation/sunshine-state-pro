@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
 import { StatusBar } from 'expo-status-bar';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { supabase } from '@/lib/supabase';
 import { useWalletStore } from '@/lib/store';
 import { getWallet } from '@/lib/actions';
+
+const STRIPE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -43,7 +46,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <>
+    <StripeProvider publishableKey={STRIPE_KEY} urlScheme="sunshinespins" merchantIdentifier="merchant.com.sunshinespins">
       <StatusBar style="light" />
       <AuthGate>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0f1117' } }}>
@@ -51,6 +54,6 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
         </Stack>
       </AuthGate>
-    </>
+    </StripeProvider>
   );
 }

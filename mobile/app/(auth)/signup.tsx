@@ -1,18 +1,31 @@
 import { useRef, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, KeyboardAvoidingView,
-  Platform, ScrollView, Animated,
+  Platform, ScrollView, Animated, Pressable, Linking,
 } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { supabase } from '@/lib/supabase';
 import { GoldButton } from '@/components/ui/GoldButton';
 import { AnimatedPressable } from '@/components/ui/AnimatedPressable';
+
+const WEB_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+const AGREEMENTS = [
+  { key: 'age',         label: 'I confirm I am at least 18 years old and a US resident in an eligible state.' },
+  { key: 'terms',       label: 'I agree to the ', link: 'Terms of Service',        href: `${WEB_BASE}/terms` },
+  { key: 'sweepstakes', label: 'I agree to the ', link: 'Official Sweepstakes Rules', href: `${WEB_BASE}/sweepstakes-rules` },
+  { key: 'privacy',     label: 'I agree to the ', link: 'Privacy Policy',           href: `${WEB_BASE}/privacy` },
+] as const;
+
+type AgreementKey = typeof AGREEMENTS[number]['key'];
 
 export default function SignupScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [agreed, setAgreed] = useState<Record<AgreementKey, boolean>>({ age: false, terms: false, sweepstakes: false, privacy: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,9 +41,17 @@ export default function SignupScreen() {
     ]).start();
   }
 
+  function toggle(key: AgreementKey) {
+    Haptics.selectionAsync();
+    setAgreed(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  const allAgreed = Object.values(agreed).every(Boolean);
+
   async function signup() {
     if (!username || !email || !password) { setError('Please fill in all fields'); triggerShake(); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); triggerShake(); return; }
+    if (!allAgreed) { setError('Please agree to all terms before continuing'); triggerShake(); return; }
     setLoading(true); setError('');
 
     const { data, error: e } = await supabase.auth.signUp({
@@ -81,13 +102,45 @@ export default function SignupScreen() {
                 ))}
               </View>
 
+              {/* Agreements */}
+              <View style={s.agreementsWrap}>
+                <Text style={s.agreementsTitle}>BEFORE YOU CONTINUE</Text>
+                {AGREEMENTS.map(({ key, label, link, href }) => (
+                  <Pressable key={key} onPress={() => toggle(key)} style={s.agreementRow}>
+                    <View style={[s.checkbox, agreed[key] && s.checkboxChecked]}>
+                      {agreed[key] && <Text style={s.checkmark}>✓</Text>}
+                    </View>
+                    <Text style={s.agreementText}>
+                      {label}
+                      {link && href ? (
+                        <Text
+                          style={s.agreementLink}
+                          onPress={(e) => { e.stopPropagation(); Linking.openURL(href); }}
+                        >
+                          {link}
+                        </Text>
+                      ) : null}
+                      {link ? '.' : ''}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
               {!!error && (
                 <View style={s.errorBox}>
                   <Text style={s.errorText}>⚠ {error}</Text>
                 </View>
               )}
 
-              <GoldButton label="Create Account" onPress={signup} loading={loading} size="lg" fullWidth style={{ marginTop: 8 }} />
+              <GoldButton
+                label="Create Account"
+                onPress={signup}
+                loading={loading}
+                disabled={!allAgreed}
+                size="lg"
+                fullWidth
+                style={{ marginTop: 8 }}
+              />
 
               <Link href="/(auth)/login" asChild>
                 <AnimatedPressable haptic="selection" style={s.switchRow}>
@@ -97,7 +150,7 @@ export default function SignupScreen() {
             </LinearGradient>
           </Animated.View>
 
-          <Text style={s.footer}>By creating an account you agree to our Terms of Service</Text>
+          <Text style={s.footer}>No purchase necessary · Void where prohibited · 18+ only</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -124,6 +177,14 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: '#1e2840',
     borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, color: '#fff', fontSize: 15,
   },
+  agreementsWrap: { borderTopWidth: 1, borderTopColor: '#1e2840', paddingTop: 16, marginBottom: 16, gap: 12 },
+  agreementsTitle: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.3)', letterSpacing: 1.5, marginBottom: 4 },
+  agreementRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: '#2e3a54', backgroundColor: 'rgba(255,255,255,0.03)', marginTop: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  checkboxChecked: { backgroundColor: '#f5c842', borderColor: '#f5c842' },
+  checkmark: { color: '#0f1117', fontSize: 11, fontWeight: '800' },
+  agreementText: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 18 },
+  agreementLink: { color: '#f5c842', fontWeight: '600' },
   errorBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 10, padding: 12, marginBottom: 10 },
   errorText: { color: '#fca5a5', fontSize: 13 },
   switchRow: { alignItems: 'center', paddingVertical: 16 },

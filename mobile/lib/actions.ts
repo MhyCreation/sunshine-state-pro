@@ -1,5 +1,39 @@
 import { supabase } from './supabase';
 
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+export async function createMobilePaymentIntent(
+  packId: string
+): Promise<{ clientSecret: string | null; error?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { clientSecret: null, error: 'Not authenticated' };
+
+  const res = await fetch(`${API_BASE}/api/stripe/payment-intent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ packId }),
+  });
+  const json = await res.json();
+  if (!res.ok) return { clientSecret: null, error: json.error ?? 'Failed to create payment' };
+  return { clientSecret: json.clientSecret };
+}
+
+export async function confirmMobilePurchase(
+  packId: string, paymentIntentId: string
+): Promise<{ success: boolean; gcAwarded?: number; error?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { success: false, error: 'Not authenticated' };
+
+  const res = await fetch(`${API_BASE}/api/stripe/confirm-purchase`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ packId, paymentIntentId }),
+  });
+  const json = await res.json();
+  if (!res.ok) return { success: false, error: json.error ?? 'Confirmation failed' };
+  return { success: true, gcAwarded: json.gcAwarded };
+}
+
 export type GameType = 'slots' | 'blackjack' | 'poker' | 'roulette';
 export type CurrencyType = 'gold' | 'sweeps';
 

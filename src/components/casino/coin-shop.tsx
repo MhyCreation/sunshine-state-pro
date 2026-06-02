@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { useWalletStore } from "@/lib/store";
 import { purchaseGoldCoins } from "@/lib/actions/wallet";
 import { Button } from "@/components/ui/button";
+import { CheckoutModal } from "@/components/casino/checkout-modal";
+import { PURCHASE_PACKS, type PurchasePackId } from "@/lib/actions/payments";
 
 // Base rate = 50,000 GC per SC (Starter pack).
 // Each tier's value bar is shown relative to the best pack (100,000 GC/SC).
@@ -113,8 +115,19 @@ interface PurchaseResult {
   gcAwarded: number;
 }
 
+const REAL_MONEY_PACKS = [
+  { id: "starter"  as PurchasePackId, emoji: "🌤",  badge: null,         featured: false },
+  { id: "classic"  as PurchasePackId, emoji: "☀️",  badge: null,         featured: false },
+  { id: "popular"  as PurchasePackId, emoji: "🌟",  badge: "POPULAR",    featured: false },
+  { id: "premium"  as PurchasePackId, emoji: "💫",  badge: null,         featured: true  },
+  { id: "elite"    as PurchasePackId, emoji: "🏆",  badge: "BEST VALUE", featured: false },
+  { id: "jackpot"  as PurchasePackId, emoji: "💎",  badge: null,         featured: false },
+];
+
 export function CoinShop({ initialSweepsCoins }: { initialSweepsCoins: number }) {
   const [pending, startTransition] = useTransition();
+  const [checkoutPack, setCheckoutPack] = useState<PurchasePackId | null>(null);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<{ packId: PurchasePackId; gc: number } | null>(null);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [lastPurchase, setLastPurchase] = useState<PurchaseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -144,7 +157,107 @@ export function CoinShop({ initialSweepsCoins }: { initialSweepsCoins: number })
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
+
+      {/* ── Real Money Purchase ─────────────────────────── */}
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-xl font-bold text-white">Buy Gold Coins</h2>
+            <p className="text-white/40 text-xs mt-0.5">Instant delivery · Secure checkout · Every bundle includes free SC</p>
+          </div>
+          <div className="flex items-center gap-2 text-white/30">
+            <span className="text-lg">💳</span>
+            <span className="text-lg"></span>
+            <span className="text-base font-bold tracking-tight">G Pay</span>
+          </div>
+        </div>
+
+        {purchaseSuccess && (
+          <div className="flex items-center gap-3 bg-win/10 border border-win/30 rounded-xl px-5 py-4">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <p className="text-win font-semibold text-sm">+{purchaseSuccess.gc.toLocaleString()} Gold Coins added!</p>
+              <p className="text-white/40 text-xs">
+                {PURCHASE_PACKS[purchaseSuccess.packId].name} · +{PURCHASE_PACKS[purchaseSuccess.packId].scBonus.toFixed(2)} SC free bonus
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {REAL_MONEY_PACKS.map(({ id, emoji, badge, featured }) => {
+            const pack = PURCHASE_PACKS[id];
+            const usd = (pack.usdCents / 100).toFixed(2);
+            return (
+              <div
+                key={id}
+                className={cn(
+                  "relative rounded-2xl border p-5 flex flex-col gap-4 transition-all card-shine cursor-pointer group",
+                  featured
+                    ? "bg-gradient-to-b from-casino-700 to-casino-800 border-gold-400/40 shadow-gold-glow"
+                    : "bg-casino-800 border-casino-600 hover:border-casino-500"
+                )}
+              >
+                {badge && (
+                  <div className={cn(
+                    "absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full",
+                    featured ? "bg-gold-400/20 text-gold-400 border border-gold-400/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                  )}>
+                    {badge}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-2xl", featured ? "bg-gold-400/20" : "bg-casino-700")}>
+                    {emoji}
+                  </div>
+                  <div>
+                    <p className={cn("font-semibold text-sm", featured ? "text-gold-400" : "text-white")}>{pack.name}</p>
+                    <p className="text-white/30 text-xs">Instant delivery</p>
+                  </div>
+                </div>
+
+                <div className="bg-casino-950/50 rounded-xl p-3 space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/50">🪙 Gold Coins</span>
+                    <span className="text-white font-bold font-mono">{pack.gcTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-win/70">💎 Free SC bonus</span>
+                    <span className="text-win/80 font-mono">+{pack.scBonus.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setCheckoutPack(id)}
+                  className={cn(
+                    "w-full py-2.5 rounded-xl text-sm font-bold transition-all mt-auto",
+                    featured
+                      ? "bg-gradient-to-r from-gold-300 to-gold-500 text-casino-900 hover:brightness-110"
+                      : "bg-casino-700 border border-casino-500 text-white hover:border-gold-400/40 group-hover:bg-casino-600"
+                  )}
+                >
+                  Buy for ${usd}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-white/20 text-xs text-center">
+          Payments secured by Stripe · Apple Pay & Google Pay accepted · No purchase necessary for Sweeps Coins
+        </p>
+      </section>
+
+      {/* Divider */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 border-t border-casino-700" />
+        <p className="text-white/25 text-xs font-medium uppercase tracking-widest">or exchange SC → GC</p>
+        <div className="flex-1 border-t border-casino-700" />
+      </div>
+
+      {/* ── SC → GC Exchange (existing) ─────────────────── */}
+      <div className="space-y-8">
       {/* Balance header */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-casino-800 rounded-2xl border border-casino-600 px-6 py-5">
         <div>
@@ -290,6 +403,19 @@ export function CoinShop({ initialSweepsCoins }: { initialSweepsCoins: number })
         Gold Coins obtained via this exchange are for entertainment only.
         No purchase necessary. Void where prohibited.
       </p>
+      </div>{/* end SC→GC section */}
+
+      {/* Checkout modal */}
+      {checkoutPack && (
+        <CheckoutModal
+          pack={{ id: checkoutPack, ...PURCHASE_PACKS[checkoutPack] }}
+          onClose={() => setCheckoutPack(null)}
+          onSuccess={(gc) => {
+            setPurchaseSuccess({ packId: checkoutPack, gc });
+            setCheckoutPack(null);
+          }}
+        />
+      )}
     </div>
   );
 }
