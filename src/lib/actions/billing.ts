@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { stripe, PLANS, type Plan } from "@/lib/stripe";
+import { getStripe, PLANS, type Plan } from "@/lib/stripe";
 import { createClient } from "@/lib/localbase/server";
 
 const LB_URL =
@@ -105,7 +105,7 @@ export async function createCheckoutSession(formData: FormData) {
 
   let customerId = business.stripe_customer_id;
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user.email,
       name: business.name,
       metadata: { business_id: business.id },
@@ -116,7 +116,7 @@ export async function createCheckoutSession(formData: FormData) {
       .update(business.id, { stripe_customer_id: customerId });
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
     payment_method_types: ["card"],
@@ -153,7 +153,7 @@ export async function createPortalSession() {
 
   if (!business?.stripe_customer_id) redirect("/dashboard/billing");
 
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: business.stripe_customer_id,
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing`,
   });

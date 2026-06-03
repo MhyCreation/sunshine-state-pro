@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 const LB_URL =
   process.env.LOCALBASE_URL ??
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     case "customer.subscription.updated": {
       const sub = event.data.object as Stripe.Subscription;
-      const customer = (await stripe.customers.retrieve(
+      const customer = (await getStripe().customers.retrieve(
         sub.customer as string
       )) as Stripe.Customer;
       const businessId = customer.metadata?.business_id;
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription;
-      const customer = (await stripe.customers.retrieve(
+      const customer = (await getStripe().customers.retrieve(
         sub.customer as string
       )) as Stripe.Customer;
       const businessId = customer.metadata?.business_id;
