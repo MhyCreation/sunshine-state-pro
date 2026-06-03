@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sunshine State Pro — CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Manrope:wght@400;500;600;700;800&family=Sacramento&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+/* ============================================================
+   DESIGN TOKENS — Sunshine State Cleaning CRM
+   ============================================================ */
+:root {
+  /* Navy */
+  --navy-950: #0B1736;
+  --navy-900: #142555;
+  --navy-800: #1B2F69;
+  --navy-700: #25408A;
+  --navy-600: #3253A8;
+  --navy-500: #4A6BC1;
+  --navy-400: #7B95D3;
+  --navy-300: #A8BCE2;
+  --navy-200: #D0DAEE;
+  --navy-100: #E7ECF6;
+  --navy-50:  #F4F6FB;
+
+  /* Gold */
+  --gold-900: #6E4E10;
+  --gold-800: #8E661A;
+  --gold-700: #B6831F;
+  --gold-600: #D29A28;
+  --gold-500: #E5B143;
+  --gold-400: #EFC465;
+  --gold-300: #F4D38A;
+  --gold-200: #F8E2B0;
+  --gold-100: #FBEBC4;
+  --gold-50:  #FDF6E4;
+
+  /* Neutrals */
+  --white:     #FFFFFF;
+  --cream:     #FAF7F0;
+  --slate-50:  #F6F7F9;
+  --slate-100: #EDEFF3;
+  --slate-200: #DDE1E8;
+  --slate-300: #C2C8D3;
+  --slate-400: #98A0B0;
+  --slate-500: #6E7689;
+  --slate-600: #525A6C;
+  --slate-700: #3D4456;
+  --slate-800: #2A3142;
+  --slate-900: #161A26;
+
+  /* Semantic */
+  --success-700: #156F47; --success-500: #1F8A5B; --success-100: #D5EFE2;
+  --warning-700: #9A6914; --warning-500: #D89222; --warning-100: #FBEBC4;
+  --danger-700:  #9B2F2A; --danger-500:  #C8443D; --danger-100:  #F7DAD7;
+  --info-700:    #1F549F; --info-500:    #2A6FDB; --info-100:    #D8E5F8;
+
+  /* Roles */
+  --bg-app:     var(--cream);
+  --fg-1: var(--slate-900);
+  --fg-2: var(--slate-700);
+  --fg-3: var(--slate-500);
+  --fg-4: var(--slate-400);
+
+  /* Typography */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans:    'Manrope', system-ui, sans-serif;
+  --font-script:  'Sacramento', cursive;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Spacing (4px base) */
+  --space-3: 8px;  --space-4: 12px; --space-5: 16px; --space-6: 20px;
+  --space-7: 24px; --space-8: 32px; --space-9: 40px;
+
+  /* Radii */
+  --radius-sm: 10px; --radius-md: 14px; --radius-lg: 20px;
+  --radius-xl: 28px; --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(20,37,85,.06);
+  --shadow-sm: 0 1px 2px rgba(20,37,85,.05), 0 2px 6px rgba(20,37,85,.06);
+  --shadow-md: 0 2px 4px rgba(20,37,85,.05), 0 8px 20px rgba(20,37,85,.08);
+  --shadow-lg: 0 4px 8px rgba(20,37,85,.06), 0 16px 40px rgba(20,37,85,.10);
+  --shadow-xl: 0 8px 16px rgba(20,37,85,.08), 0 32px 64px rgba(20,37,85,.14);
+  --shadow-gold-glow: 0 0 0 4px rgba(229,177,67,.25);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,.5);
+
+  /* Motion */
+  --ease-out:   cubic-bezier(.22,1,.36,1);
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+
+  /* Layout */
+  --sidebar-w: 264px;
+  --topbar-h:  64px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #app { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg-1);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+a { color: var(--navy-700); text-decoration-color: var(--gold-400); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; overflow: hidden; background: var(--bg-app); }
+.content { flex: 1; overflow-y: auto; padding: 28px 36px 60px; }
+.content-narrow { max-width: 1240px; margin: 0 auto; }
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  background: var(--navy-900);
+  color: rgba(255,255,255,.85);
+  display: flex; flex-direction: column;
+  padding: 18px 14px;
+  gap: 14px;
+  overflow-y: auto;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.sidebar-brand .mark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--gold-500);
+  display: flex; align-items: center; justify-content: center;
+}
+.sidebar-brand .name {
+  font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  line-height: 1.1; letter-spacing: -.01em; color: white;
+}
+.sidebar-brand .name small {
+  display: block; font-family: var(--font-sans); font-weight: 500;
+  font-size: 11px; color: var(--gold-300);
+  letter-spacing: .06em; text-transform: uppercase; margin-top: 2px;
+}
+.sidebar-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(255,255,255,.35);
+  padding: 8px 12px 4px;
+}
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: 12px;
+  color: rgba(255,255,255,.72); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: 150ms;
+  position: relative; background: none; border: none; text-align: left; width: 100%;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: white; }
+.nav-item.active { background: rgba(229,177,67,.14); color: var(--gold-300); font-weight: 600; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px;
+  width: 3px; border-radius: 3px; background: var(--gold-500);
+}
+.nav-item .count {
+  margin-left: auto; background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.8); font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 9999px;
+}
+.nav-item.active .count { background: var(--gold-500); color: var(--navy-900); }
+.sidebar-foot {
+  margin-top: auto; padding: 10px; border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  display: flex; gap: 10px; align-items: center;
+  border: none; width: 100%; text-align: left; cursor: pointer;
+  transition: 150ms;
+}
+.sidebar-foot:hover { background: rgba(255,255,255,.08); }
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  height: var(--topbar-h); background: white;
+  border-bottom: 1px solid var(--slate-100);
+  display: flex; align-items: center;
+  padding: 0 28px; gap: 16px; flex-shrink: 0;
+}
+.topbar-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.search {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--slate-50); border: 1px solid var(--slate-100);
+  border-radius: 12px; padding: 8px 14px;
+  width: 360px; max-width: 100%; margin-left: auto; color: var(--fg-3);
+}
+.search input { border: none; background: none; outline: none; font-family: inherit; font-size: 14px; color: var(--fg-1); width: 100%; }
+.search kbd { font-family: var(--font-mono); font-size: 10px; background: white; border: 1px solid var(--slate-200); border-radius: 6px; padding: 2px 6px; color: var(--fg-3); }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  font-family: var(--font-sans); font-size: 14px; font-weight: 600;
+  padding: 10px 18px; border-radius: 14px; border: 1px solid transparent;
+  cursor: pointer; transition: all 180ms var(--ease-out);
+  display: inline-flex; align-items: center; gap: 8px; line-height: 1; white-space: nowrap;
+}
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(229,177,67,.35); }
+.btn-primary { background: var(--navy-900); color: white; box-shadow: var(--shadow-xs), var(--shadow-inset); }
+.btn-primary:hover { background: var(--navy-800); }
+.btn-primary:active { background: var(--navy-950); transform: translateY(1px); }
+.btn-secondary { background: white; color: var(--navy-900); border-color: var(--slate-200); }
+.btn-secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+.btn-accent { background: var(--gold-500); color: var(--navy-900); }
+.btn-accent:hover { background: var(--gold-600); }
+.btn-ghost { background: transparent; color: var(--navy-700); border: none; }
+.btn-ghost:hover { background: var(--slate-100); }
+.btn-danger { background: var(--danger-100); color: var(--danger-700); border-color: var(--danger-100); }
+.btn-danger:hover { background: var(--danger-500); color: white; }
+.btn-icon { padding: 9px; border-radius: 12px; }
+.btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card { background: white; border-radius: 20px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.card-pad { padding: 24px; }
+.card-head {
+  padding: 18px 24px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--slate-100);
+}
+.card-head .h-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 9999px;
+  font-size: 12px; font-weight: 600; line-height: 1.3;
+}
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+.b-success { background: var(--success-100); color: var(--success-700); }
+.b-warning { background: var(--warning-100); color: var(--warning-700); }
+.b-danger  { background: var(--danger-100);  color: var(--danger-700); }
+.b-info    { background: var(--info-100);    color: var(--info-700); }
+.b-neutral { background: var(--slate-100);   color: var(--slate-700); }
+.b-navy    { background: var(--navy-900);    color: white; }
+.b-gold    { background: var(--gold-500);    color: var(--navy-900); }
+.b-outline { background: white; color: var(--navy-700); border: 1px solid var(--navy-200); }
+
+/* ============================================================
+   AVATARS
+   ============================================================ */
+.av {
+  border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-family: var(--font-sans); color: var(--navy-900); flex-shrink: 0; user-select: none;
+}
+.av-stack { display: flex; }
+.av-stack > .av { border: 2px solid white; }
+.av-stack > .av + .av { margin-left: -8px; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi { padding: 22px 24px; }
+.kpi-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-700); }
+.kpi-value { font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; margin-top: 6px; }
+.kpi-foot { font-size: 13px; color: var(--fg-3); margin-top: 4px; }
+.kpi-delta { color: var(--success-700); font-weight: 600; }
+.kpi-delta.down { color: var(--danger-700); }
+
+/* ============================================================
+   FORMS & TABLE
+   ============================================================ */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--fg-2); }
+.input, .select-field, .textarea {
+  font-family: var(--font-sans); font-size: 14px;
+  padding: 10px 14px; border-radius: 14px;
+  border: 1px solid var(--slate-200);
+  background: white; color: var(--fg-1); transition: 150ms; width: 100%;
+}
+.input:focus, .select-field:focus, .textarea:focus {
+  outline: none; border-color: var(--navy-700); box-shadow: var(--shadow-gold-glow);
+}
+.table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.table th {
+  text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  font-weight: 700; color: var(--fg-3); padding: 12px 20px;
+  background: var(--slate-50); border-bottom: 1px solid var(--slate-100);
+}
+.table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
+.table tr:hover td { background: var(--slate-50); cursor: pointer; }
+.table tr:last-child td { border-bottom: none; }
+.t-right { text-align: right; }
+.mono { font-family: var(--font-mono); }
+
+/* ============================================================
+   PAGE HEADER, TABS, GRID
+   ============================================================ */
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.page-head h1 { font-family: var(--font-display); font-size: 32px; line-height: 1.2; margin: 6px 0 0; letter-spacing: -.02em; }
+.page-head .eyebrow { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--gold-700); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--slate-100); margin-bottom: 18px; }
+.tab { padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--fg-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 150ms; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font-sans); }
+.tab:hover { color: var(--fg-1); }
+.tab.active { color: var(--navy-900); border-bottom-color: var(--gold-500); }
+.grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-6 { grid-column: span 6; }
+.col-8 { grid-column: span 8; }
+
+/* ============================================================
+   DRAWER / MODAL
+   ============================================================ */
+.scrim { position: fixed; inset: 0; background: rgba(11,23,54,.45); backdrop-filter: blur(2px); z-index: 50; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 100%; background: var(--cream); z-index: 51; box-shadow: var(--shadow-xl); overflow-y: auto; }
+.drawer-head { display: flex; align-items: center; gap: 12px; padding: 22px 24px 18px; border-bottom: 1px solid var(--slate-200); }
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+.login-wrap {
+  min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+}
+.login-left {
+  background: var(--navy-900); display: flex; flex-direction: column;
+  justify-content: space-between; padding: 48px;
+  position: relative; overflow: hidden;
+}
+.login-left::before {
+  content: ''; position: absolute; top: 30%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(229,177,67,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-right {
+  background: white; display: flex; align-items: center; justify-content: center;
+  padding: 48px;
+}
+.login-form { width: 100%; max-width: 360px; }
+.login-logo-mark {
+  width: 52px; height: 52px; border-radius: 16px; background: var(--gold-500);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+}
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.divider { height: 1px; background: var(--slate-100); }
+.icon-wrap { display: inline-flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+'use strict';
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ============================================================
+   MOCK DATA
+   ============================================================ */
+const CUSTOMERS = [
+  { id: 'c1', name: 'Maria Henderson',          address: '412 Palm Ave, Tampa',            phone: '(813) 555-0142', since: '2019', tags: ['Recurring', 'VIP'],        notes: 'Spare key under planter by side door. Two cats — no chemicals on floors.', frequency: 'Bi-weekly · Wed AM', balance: 0 },
+  { id: 'c2', name: 'Tampa Realty Group',        address: '88 Bayshore Blvd #4, Tampa',    phone: '(813) 555-0188', since: '2021', tags: ['Commercial'],               notes: 'Move-out cleans, billed to office manager Janet.', frequency: 'As needed', balance: 480 },
+  { id: 'c3', name: 'David & Ana Ruiz',          address: '1207 Bahia Way, St. Pete',      phone: '(727) 555-0203', since: '2022', tags: ['Recurring'],                notes: 'Prefer Thursday afternoons. Dog (friendly) — Coco.', frequency: 'Weekly · Thu PM', balance: 0 },
+  { id: 'c4', name: 'Sunset Vacation Rentals',   address: '14 properties · Clearwater',    phone: '(727) 555-0099', since: '2020', tags: ['Commercial', 'VIP'],       notes: 'Turnover cleans between guests. Lockbox codes in customer notes.', frequency: 'Per booking', balance: 1240 },
+  { id: 'c5', name: 'Linda Park',                address: '9 Sandpiper Ct, Sarasota',      phone: '(941) 555-0331', since: '2023', tags: ['New'],                      notes: 'First-time deep clean scheduled.', frequency: 'One-time', balance: 0 },
+  { id: 'c6', name: 'Jefferson Family',          address: '3401 Live Oak Dr, Tampa',       phone: '(813) 555-0277', since: '2018', tags: ['Recurring'],                notes: 'Long-time customer. Birthday Apr 12 — send card.', frequency: 'Bi-weekly · Mon AM', balance: 0 },
+  { id: 'c7', name: 'Brightline Offices',        address: '1100 Channelside, Tampa',       phone: '(813) 555-0411', since: '2024', tags: ['Commercial'],               notes: 'After-hours cleaning Tue/Thu after 7pm.', frequency: 'Twice weekly', balance: 0 },
+  { id: 'c8', name: 'Coastal Air BnB',           address: '6 properties · Dunedin',        phone: '(727) 555-0518', since: '2023', tags: ['Commercial'],               notes: 'Same-day turnover required.', frequency: 'Per booking', balance: 320 },
+];
+
+const JOBS = [
+  { id: 1284, customer: 'Maria Henderson',          service: 'Bi-weekly clean',      crew: ['Ana Lopez', 'Juan Rivera'], status: 'in_progress', time: '9:00 AM',  duration: '2h',   amount: 140, day: 2 },
+  { id: 1285, customer: 'Tampa Realty Group',        service: 'Move-out deep clean',  crew: [],                          status: 'scheduled',   time: '11:30 AM', duration: '4h',   amount: 480, day: 2 },
+  { id: 1283, customer: 'Brightline Offices',        service: 'Office clean',          crew: ['Sofia Cruz', 'Tomas Vega'],status: 'completed',   time: '7:30 AM',  duration: '2h',   amount: 220, day: 2 },
+  { id: 1286, customer: 'Linda Park',                service: 'First deep clean',      crew: ['Ana Lopez', 'Luis Perez'], status: 'scheduled',   time: '2:00 PM',  duration: '3h',   amount: 380, day: 2 },
+  { id: 1287, customer: 'Sunset Vacation Rentals',   service: 'Turnover · Unit 4',    crew: ['Juan Rivera'],             status: 'scheduled',   time: '4:30 PM',  duration: '1.5h', amount: 110, day: 2 },
+];
+
+const INVOICES = [
+  { id: 'INV-2026-0413', customer: 'Sunset Vacation Rentals', issued: 'May 28', due: 'Jun 27', amount: 1240, status: 'overdue' },
+  { id: 'INV-2026-0412', customer: 'Tampa Realty Group',      issued: 'May 30', due: 'Jun 29', amount: 480,  status: 'pending' },
+  { id: 'INV-2026-0411', customer: 'Brightline Offices',      issued: 'Jun 1',  due: 'Jul 1',  amount: 880,  status: 'pending' },
+  { id: 'INV-2026-0410', customer: 'Coastal Air BnB',         issued: 'May 22', due: 'Jun 21', amount: 320,  status: 'overdue' },
+  { id: 'INV-2026-0409', customer: 'Maria Henderson',         issued: 'May 30', due: 'May 30', amount: 140,  status: 'paid' },
+  { id: 'INV-2026-0408', customer: 'Jefferson Family',        issued: 'May 27', due: 'May 27', amount: 140,  status: 'paid' },
+  { id: 'INV-2026-0407', customer: 'David & Ana Ruiz',        issued: 'May 25', due: 'May 25', amount: 120,  status: 'paid' },
+];
+
+const ESTIMATES = [
+  { id: 'EST-2026-0086', customer: 'Linda Park',           service: 'First deep clean',     prepared: 'Jun 2',  expires: 'Jun 16', amount: 380,  status: 'approved',  lines: [{ desc: 'Whole-home deep clean (3 BR / 2 BA)', qty: 1, total: 320 }, { desc: 'Inside oven + fridge', qty: 1, total: 60 }] },
+  { id: 'EST-2026-0085', customer: 'Bay Oaks HOA',         service: 'Common-area weekly',   prepared: 'Jun 1',  expires: 'Jun 15', amount: 720,  status: 'sent',      lines: [{ desc: 'Weekly clubhouse + gym + lobbies', qty: 4, total: 640 }, { desc: 'Glass + railings exterior wipe-down', qty: 4, total: 80 }] },
+  { id: 'EST-2026-0084', customer: 'Aspen Move-In Co.',    service: 'Move-in clean',        prepared: 'May 30', expires: 'Jun 13', amount: 560,  status: 'sent',      lines: [{ desc: '4 BR / 3 BA move-in clean', qty: 1, total: 480 }, { desc: 'Carpet spot treatment', qty: 1, total: 80 }] },
+  { id: 'EST-2026-0083', customer: 'Coastal Air BnB',      service: 'Add property · Unit 7', prepared: 'May 28', expires: 'Jun 11', amount: 1980, status: 'approved',  lines: [{ desc: 'Recurring turnover · 2 BR · est. 12/mo', qty: 12, total: 1740 }, { desc: 'Linen + laundry add-on', qty: 12, total: 240 }] },
+  { id: 'EST-2026-0082', customer: 'Greenway Dental',      service: 'Post-construction',    prepared: 'May 26', expires: 'Jun 9',  amount: 1140, status: 'declined',  lines: [{ desc: 'Post-construction deep clean · 2,400 sqft', qty: 1, total: 1040 }, { desc: 'HVAC vent dusting', qty: 1, total: 100 }] },
+  { id: 'EST-2026-0081', customer: 'Tampa Realty Group',   service: 'Move-out clean',       prepared: 'May 24', expires: 'Jun 7',  amount: 480,  status: 'converted', lines: [{ desc: '3 BR / 2 BA move-out clean', qty: 1, total: 420 }, { desc: 'Patio + garage', qty: 1, total: 60 }] },
+];
+
+const CREW_PAYROLL = [
+  { id: 'c1', name: 'Ana Lopez',    role: 'Crew Lead', rate: 24, hours: 62.5, ot: 4.0, jobs: 18, status: 'on_track' },
+  { id: 'c4', name: 'Sofia Cruz',   role: 'Crew Lead', rate: 24, hours: 58.0, ot: 0,   jobs: 16, status: 'on_track' },
+  { id: 'c2', name: 'Juan Rivera',  role: 'Crew',      rate: 18, hours: 54.0, ot: 0,   jobs: 14, status: 'on_track' },
+  { id: 'c3', name: 'Luis Perez',   role: 'Crew',      rate: 18, hours: 50.5, ot: 0,   jobs: 13, status: 'on_track' },
+  { id: 'c5', name: 'Tomas Vega',   role: 'Crew',      rate: 18, hours: 47.0, ot: 0,   jobs: 12, status: 'pto_pending' },
+  { id: 'c6', name: 'Carlos Mejia', role: 'Crew',      rate: 18, hours: 39.5, ot: 0,   jobs: 11, status: 'on_track' },
+  { id: 'c7', name: 'Diana Reyes',  role: 'Crew',      rate: 18, hours: 22.0, ot: 0,   jobs: 7,  status: 'part_time' },
+];
+
+const ACTIVITY = [
+  { icon: 'check-circle-2', color: 'var(--success-500)', text: 'Job #1283 completed by Sofia Cruz',             time: '9:42 AM' },
+  { icon: 'play-circle',    color: 'var(--warning-500)', text: 'Ana Lopez started Job #1284 — Henderson',        time: '9:04 AM' },
+  { icon: 'user-plus',      color: 'var(--navy-700)',    text: 'New customer Linda Park added by you',            time: '8:30 AM' },
+  { icon: 'file-text',      color: 'var(--navy-700)',    text: 'Invoice INV-2026-0413 sent to Sunset Vacation Rentals', time: 'Yesterday' },
+  { icon: 'alert-triangle', color: 'var(--danger-500)',  text: 'Job #1281 marked overdue (Coastal Air BnB)',     time: 'Yesterday' },
+];
+
+function payrollGross(p) {
+  const reg = Math.max(0, p.hours - p.ot);
+  return reg * p.rate + p.ot * p.rate * 1.5;
+}
+
+/* ============================================================
+   ICON (Lucide via global)
+   ============================================================ */
+function Icon({ name, size = 18, color, style, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current && window.lucide) {
+      ref.current.innerHTML = '';
+      const el = document.createElement('i');
+      el.setAttribute('data-lucide', name);
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      if (color) el.style.color = color;
+      ref.current.appendChild(el);
+      window.lucide.createIcons({ attrs: { width: size, height: size }, nodes: [el] });
+    }
+  }, [name, size, color]);
+  return <span ref={ref} className={`icon-wrap ${className || ''}`} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...style }} />;
+}
+
+/* ============================================================
+   AVATAR
+   ============================================================ */
+const AV_COLORS = ['#F4D38A', '#A8BCE2', '#E5B143', '#D0DAEE', '#7B95D3', '#FBEBC4'];
+function avColor(name) {
+  let h = 0;
+  for (const c of (name || '')) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return AV_COLORS[h % AV_COLORS.length];
+}
+function initials(name) {
+  return (name || '?').split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+}
+function Avatar({ name, size = 32, color, status }) {
+  const bg = color || avColor(name);
+  return (
+    <div className="av" style={{ width: size, height: size, background: bg, fontSize: Math.max(10, size * 0.38), position: 'relative' }}>
+      {initials(name)}
+      {status && <span style={{ position: 'absolute', right: -1, bottom: -1, width: Math.max(8, size * 0.28), height: Math.max(8, size * 0.28), borderRadius: '50%', background: status === 'online' ? 'var(--success-500)' : 'var(--slate-300)', border: '2px solid white' }} />}
+    </div>
+  );
+}
+function AvatarStack({ names, size = 28, max = 4 }) {
+  const vis = names.slice(0, max);
+  const extra = names.length - vis.length;
+  return (
+    <div className="av-stack">
+      {vis.map((n, i) => <Avatar key={i} name={n} size={size} />)}
+      {extra > 0 && <div className="av" style={{ width: size, height: size, background: 'var(--navy-900)', color: 'white', fontSize: 11, marginLeft: -8, border: '2px solid white', borderRadius: '50%', zIndex: 1 }}>+{extra}</div>}
+    </div>
+  );
+}
+
+/* ============================================================
+   BADGE
+   ============================================================ */
+function Badge({ tone = 'neutral', dot, children }) {
+  return (
+    <span className={`badge b-${tone}`}>
+      {dot && <span className="dot" style={{ background: 'currentColor', opacity: .7 }} />}
+      {children}
+    </span>
+  );
+}
+
+/* ============================================================
+   BUTTON
+   ============================================================ */
+function Btn({ variant = 'primary', size, icon, children, onClick, type = 'button', style, disabled }) {
+  const cls = ['btn', `btn-${variant}`, size === 'sm' ? 'btn-sm' : '', icon && !children ? 'btn-icon' : ''].filter(Boolean).join(' ');
+  const iconSize = size === 'sm' ? 13 : 15;
+  return (
+    <button type={type} className={cls} onClick={onClick} style={style} disabled={disabled}>
+      {icon && <Icon name={icon} size={iconSize} />}
+      {children}
+    </button>
+  );
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+function Card({ pad = true, children, style, onClick }) {
+  return <div className={`card${pad ? ' card-pad' : ''}`} style={style} onClick={onClick}>{children}</div>;
+}
+function CardHead({ title, icon, action }) {
+  return (
+    <div className="card-head">
+      {icon && <Icon name={icon} size={17} style={{ color: 'var(--navy-700)' }} />}
+      <span className="h-title">{title}</span>
+      {action && <span style={{ marginLeft: 'auto' }}>{action}</span>}
+    </div>
+  );
+}
+
+/* ============================================================
+   JOB STATUS
+   ============================================================ */
+const JOB_STATUS = {
+  scheduled:   { tone: 'info',    label: 'Scheduled' },
+  in_progress: { tone: 'warning', label: 'In Progress' },
+  completed:   { tone: 'success', label: 'Completed' },
+  overdue:     { tone: 'danger',  label: 'Overdue' },
+  draft:       { tone: 'neutral', label: 'Draft' },
+};
+function JobStatus({ status }) {
+  const s = JOB_STATUS[status] || JOB_STATUS.draft;
+  return <Badge tone={s.tone} dot>{s.label}</Badge>;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function Sidebar({ current, onNav }) {
+  const main = [
+    { id: 'dashboard', label: 'Dashboard',     icon: 'layout-dashboard' },
+    { id: 'customers', label: 'Customers',      icon: 'users',         count: 128 },
+    { id: 'estimates', label: 'Estimates',      icon: 'file-signature', count: 2 },
+    { id: 'invoices',  label: 'Invoices',       icon: 'file-text',     count: 3 },
+  ];
+  const ops = [
+    { id: 'crew',      label: 'Crew & Payroll', icon: 'hard-hat' },
+    { id: 'reports',   label: 'Reports',        icon: 'bar-chart-3' },
+    { id: 'settings',  label: 'Settings',       icon: 'settings' },
+  ];
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <div className="mark">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="21" r="7" fill="#142555" />
+            <g stroke="#142555" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="16" y1="5"  x2="16" y2="9" />
+              <line x1="5"  y1="21" x2="9"  y2="21" />
+              <line x1="23" y1="21" x2="27" y2="21" />
+              <line x1="8"  y1="12" x2="11" y2="15" />
+              <line x1="24" y1="12" x2="21" y2="15" />
+            </g>
+          </svg>
+        </div>
+        <div className="name">Sunshine State<small>Cleaning · CRM</small></div>
+      </div>
+
+      <nav className="nav">
+        {main.map(it => (
+          <button key={it.id} className={`nav-item${current === it.id ? ' active' : ''}`} onClick={() => onNav(it.id)}>
+            <Icon name={it.icon} size={17} />
+            {it.label}
+            {it.count !== undefined && <span className="count">{it.count}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <div className="sidebar-section-label">Operations</div>
+      <nav className="nav">
+        {ops.map(it => (
+          <button key={it.id} className={`nav-item${current === it.id ? ' active' : ''}`} onClick={() => onNav(it.id)}>
+            <Icon name={it.icon} size={17} />
+            {it.label}
+          </button>
+        ))}
+      </nav>
+
+      <button className="sidebar-foot" onClick={() => onNav('login')}>
+        <Avatar name="Sam Carter" size={36} color="#E5B143" />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>Sam Carter</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)' }}>Office Manager · Sign out</div>
+        </div>
+        <Icon name="log-out" size={14} style={{ marginLeft: 'auto', color: 'rgba(255,255,255,.45)' }} />
+      </button>
+    </aside>
+  );
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+function TopBar({ title, action }) {
+  return (
+    <header className="topbar">
+      <div className="topbar-title">{title}</div>
+      <div className="search">
+        <Icon name="search" size={15} />
+        <input placeholder="Search customers, jobs, invoices…" />
+        <kbd>⌘K</kbd>
+      </div>
+      <button className="btn btn-icon btn-ghost" style={{ position: 'relative', flexShrink: 0 }}>
+        <Icon name="bell" size={17} />
+        <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: '50%', background: 'var(--gold-500)', border: '2px solid white' }} />
+      </button>
+      {action}
+    </header>
+  );
+}
+
+/* ============================================================
+   SCREEN: DASHBOARD
+   ============================================================ */
+function DashboardScreen({ onOpenJob }) {
+  const today = JOBS.filter(j => j.day === 2);
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Tuesday · Jun 4 · sunny &amp; 84°F</span>
+          <h1>Good morning, Sam</h1>
+          <p style={{ color: 'var(--fg-3)', marginTop: 6, fontSize: 14 }}>5 jobs today across 4 crews. One overdue invoice needs attention.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" icon="download">Export</Btn>
+          <Btn variant="primary" icon="plus">New Job</Btn>
+        </div>
+      </div>
+
+      <div className="grid-12" style={{ marginBottom: 18 }}>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Today</div><div className="kpi-value">5 jobs</div><div className="kpi-foot"><span className="kpi-delta">+2</span> vs. last Tue</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">This week</div><div className="kpi-value">$8,240</div><div className="kpi-foot"><span className="kpi-delta">+12%</span> estimated revenue</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Outstanding</div><div className="kpi-value">$2,040</div><div className="kpi-foot"><span className="kpi-delta down">-$320</span> across 4 invoices</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Active customers</div><div className="kpi-value">128</div><div className="kpi-foot">+3 this month</div></div></div>
+      </div>
+
+      <div className="grid-12">
+        <div className="col-8">
+          <Card pad={false}>
+            <CardHead title="Today's schedule" icon="calendar-days" action={<Btn variant="ghost" size="sm" icon="arrow-right">Full calendar</Btn>} />
+            <div>
+              {today.map(j => (
+                <button key={j.id} onClick={() => onOpenJob(j)}
+                  style={{ display: 'grid', gridTemplateColumns: '90px 1fr auto auto', gap: 16, alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid var(--slate-100)', cursor: 'pointer', background: 'none', border: 'none', borderTop: 'none', width: '100%', textAlign: 'left', fontFamily: 'inherit' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--slate-50)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600 }}>{j.time}</div>
+                    <div style={{ fontSize: 11, color: 'var(--fg-3)' }}>{j.duration}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{j.customer}</div>
+                    <div style={{ fontSize: 13, color: 'var(--fg-3)' }}>{j.service} <span className="mono" style={{ color: 'var(--fg-4)', marginLeft: 6 }}>#{j.id}</span></div>
+                  </div>
+                  <div>
+                    {j.crew.length > 0
+                      ? <AvatarStack names={j.crew} size={26} />
+                      : <span style={{ fontSize: 12, color: 'var(--danger-500)', fontWeight: 600 }}>Unassigned</span>}
+                  </div>
+                  <JobStatus status={j.status} />
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className="col-4" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <Card pad={false}>
+            <CardHead title="Activity" icon="activity" />
+            <div style={{ padding: '6px 0' }}>
+              {ACTIVITY.map((a, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 24px', alignItems: 'flex-start' }}>
+                  <Icon name={a.icon} size={15} color={a.color} style={{ marginTop: 2 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.4 }}>{a.text}</div>
+                    <div style={{ fontSize: 11, color: 'var(--fg-4)', marginTop: 2 }}>{a.time}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card style={{ background: 'var(--navy-900)', color: 'white', boxShadow: 'var(--shadow-md)' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(229,177,67,.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="sun" size={19} color="var(--gold-300)" />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600 }}>Weather looks good</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,.65)', marginTop: 4, lineHeight: 1.45 }}>Clear skies all week. No reschedules needed.</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: CUSTOMERS
+   ============================================================ */
+function CustomersScreen() {
+  const [selected, setSelected] = useState(CUSTOMERS[0]);
+  const [tab, setTab] = useState('all');
+  const filtered = CUSTOMERS.filter(c => {
+    if (tab === 'all') return true;
+    if (tab === 'recurring') return c.tags.includes('Recurring');
+    if (tab === 'commercial') return c.tags.includes('Commercial');
+    if (tab === 'new') return c.tags.includes('New');
+    return true;
+  });
+  const tagTone = t => t === 'VIP' ? 'gold' : t === 'New' ? 'info' : t === 'Commercial' ? 'navy' : 'neutral';
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div><span className="eyebrow">128 customers</span><h1>Customers</h1></div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="secondary" icon="upload">Import</Btn>
+          <Btn variant="primary" icon="user-plus">Add Customer</Btn>
+        </div>
+      </div>
+      <div className="tabs">
+        {[{ id:'all',label:'All',count:128},{ id:'recurring',label:'Recurring',count:84},{ id:'commercial',label:'Commercial',count:22},{ id:'new',label:'New this month',count:7}].map(t => (
+          <button key={t.id} className={`tab${tab===t.id?' active':''}`} onClick={() => setTab(t.id)}>
+            {t.label} <span style={{ color:'var(--fg-4)', fontWeight:500, marginLeft:4 }}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:20 }}>
+        <Card pad={false}>
+          <table className="table">
+            <thead><tr><th>Customer</th><th>Frequency</th><th>Tags</th><th className="t-right">Balance</th></tr></thead>
+            <tbody>
+              {filtered.map(c => (
+                <tr key={c.id} onClick={() => setSelected(c)} style={{ background: selected.id===c.id ? 'var(--gold-50)' : undefined }}>
+                  <td>
+                    <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                      <Avatar name={c.name} size={32} />
+                      <div><div style={{ fontWeight:600 }}>{c.name}</div><div style={{ fontSize:12, color:'var(--fg-3)' }}>{c.address}</div></div>
+                    </div>
+                  </td>
+                  <td style={{ color:'var(--fg-2)', fontSize:13 }}>{c.frequency}</td>
+                  <td><div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>{c.tags.map(t => <Badge key={t} tone={tagTone(t)}>{t}</Badge>)}</div></td>
+                  <td className="t-right mono" style={{ fontWeight:600, color: c.balance>0 ? 'var(--danger-700)' : 'var(--fg-3)' }}>{c.balance>0 ? `$${c.balance.toFixed(2)}` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+        <Card pad={false} style={{ alignSelf:'flex-start' }}>
+          <div style={{ padding:24, borderBottom:'1px solid var(--slate-100)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+              <Avatar name={selected.name} size={56} />
+              <div style={{ minWidth:0, flex:1 }}>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:700, letterSpacing:'-.01em', lineHeight:1.2 }}>{selected.name}</div>
+                <div style={{ fontSize:13, color:'var(--fg-3)', marginTop:2 }}>Customer since {selected.since}</div>
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:4, marginTop:12, flexWrap:'wrap' }}>{selected.tags.map(t => <Badge key={t} tone={tagTone(t)}>{t}</Badge>)}</div>
+            <div style={{ display:'flex', gap:8, marginTop:16 }}>
+              <Btn variant="primary" icon="calendar-plus">Schedule</Btn>
+              <Btn variant="secondary" icon="message-circle">Message</Btn>
+              <Btn variant="ghost" icon="more-horizontal" />
+            </div>
+          </div>
+          <div style={{ padding:20 }}>
+            {[
+              { label:'Address', value:selected.address, icon:'map-pin' },
+              { label:'Phone',   value:selected.phone,   icon:'phone',       mono:true },
+              { label:'Frequency', value:selected.frequency, icon:'repeat' },
+              { label:'Balance', value:selected.balance>0 ? `$${selected.balance.toFixed(2)}` : 'Paid in full', icon:'dollar-sign', mono:true, color: selected.balance>0 ? 'var(--danger-700)' : 'var(--success-700)' },
+            ].map(row => (
+              <div key={row.label} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'1px solid var(--slate-100)' }}>
+                <Icon name={row.icon} size={15} style={{ color:'var(--fg-3)', marginTop:2 }} />
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:11, letterSpacing:'.06em', textTransform:'uppercase', fontWeight:600, color:'var(--fg-3)' }}>{row.label}</div>
+                  <div className={row.mono ? 'mono' : ''} style={{ fontSize:14, color:row.color||'var(--fg-1)', marginTop:2, fontWeight:row.mono?600:500 }}>{row.value}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop:18, padding:14, background:'var(--cream)', borderRadius:14, border:'1px solid var(--gold-100)' }}>
+              <div style={{ fontSize:11, letterSpacing:'.08em', textTransform:'uppercase', fontWeight:700, color:'var(--gold-700)', marginBottom:6 }}>Notes</div>
+              <div style={{ fontSize:13, color:'var(--fg-2)', lineHeight:1.5 }}>{selected.notes}</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: ESTIMATES
+   ============================================================ */
+function EstimatesScreen() {
+  const [selected, setSelected] = useState(ESTIMATES[0]);
+  const [tab, setTab] = useState('all');
+  const filtered = ESTIMATES.filter(e => tab==='all' ? true : tab==='open' ? (e.status==='sent'||e.status==='draft') : e.status===tab);
+  const tone = s => ({ draft:'neutral',sent:'info',approved:'success',declined:'danger',converted:'gold' }[s]||'neutral');
+  const lbl  = s => ({ draft:'Draft',sent:'Sent',approved:'Approved',declined:'Declined',converted:'Converted' }[s]||s);
+  const totals = {
+    sent:      ESTIMATES.filter(e=>e.status==='sent').reduce((s,e)=>s+e.amount,0),
+    approved:  ESTIMATES.filter(e=>e.status==='approved').reduce((s,e)=>s+e.amount,0),
+    converted: ESTIMATES.filter(e=>e.status==='converted').reduce((s,e)=>s+e.amount,0),
+  };
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div><span className="eyebrow">Last 30 days · 7 estimates</span><h1>Estimates</h1></div>
+        <div style={{ display:'flex', gap:8 }}>
+          <Btn variant="secondary" icon="copy">Duplicate last</Btn>
+          <Btn variant="primary" icon="plus">New Estimate</Btn>
+        </div>
+      </div>
+      <div className="grid-12" style={{ marginBottom:18 }}>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow">Awaiting reply</div><div className="kpi-value">${totals.sent.toLocaleString()}</div><div className="kpi-foot">2 estimates · oldest 6 days</div></div></div>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow" style={{ color:'var(--success-700)' }}>Approved · not scheduled</div><div className="kpi-value" style={{ color:'var(--success-700)' }}>${totals.approved.toLocaleString()}</div><div className="kpi-foot">2 ready to book</div></div></div>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow">Converted to jobs</div><div className="kpi-value">${totals.converted.toLocaleString()}</div><div className="kpi-foot">1 estimate · <span className="kpi-delta">66%</span> 30-day win rate</div></div></div>
+      </div>
+      <div className="tabs">
+        {[{id:'all',label:'All',count:ESTIMATES.length},{id:'open',label:'Open',count:ESTIMATES.filter(e=>e.status==='sent'||e.status==='draft').length},{id:'approved',label:'Approved',count:ESTIMATES.filter(e=>e.status==='approved').length},{id:'declined',label:'Declined',count:ESTIMATES.filter(e=>e.status==='declined').length},{id:'converted',label:'Converted',count:ESTIMATES.filter(e=>e.status==='converted').length}].map(t => (
+          <button key={t.id} className={`tab${tab===t.id?' active':''}`} onClick={() => setTab(t.id)}>
+            {t.label} <span style={{ color:'var(--fg-4)', fontWeight:500, marginLeft:4 }}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:20 }}>
+        <Card pad={false}>
+          <table className="table">
+            <thead><tr><th>Estimate</th><th>Customer</th><th>Prepared</th><th>Status</th><th className="t-right">Amount</th></tr></thead>
+            <tbody>
+              {filtered.map(e => (
+                <tr key={e.id} onClick={() => setSelected(e)} style={{ background: selected.id===e.id ? 'var(--gold-50)' : undefined }}>
+                  <td><div className="mono" style={{ fontWeight:600, color:'var(--navy-700)' }}>{e.id}</div><div style={{ fontSize:12, color:'var(--fg-3)', marginTop:2 }}>{e.service}</div></td>
+                  <td><div style={{ display:'flex', alignItems:'center', gap:10 }}><Avatar name={e.customer} size={26} /><span style={{ fontSize:13 }}>{e.customer}</span></div></td>
+                  <td style={{ color:'var(--fg-3)', fontSize:13 }}>{e.prepared}</td>
+                  <td><Badge tone={tone(e.status)} dot={e.status!=='converted'}>{lbl(e.status)}</Badge></td>
+                  <td className="t-right mono" style={{ fontWeight:600 }}>${e.amount.toLocaleString()}.00</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+        <Card pad={false} style={{ alignSelf:'flex-start' }}>
+          <div style={{ padding:24, borderBottom:'1px solid var(--slate-100)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
+              <div style={{ minWidth:0 }}>
+                <div className="mono" style={{ fontSize:12, color:'var(--fg-3)' }}>{selected.id}</div>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:700, letterSpacing:'-.01em', lineHeight:1.2, marginTop:2 }}>{selected.service}</div>
+                <div style={{ fontSize:13, color:'var(--fg-2)', marginTop:4 }}>for <strong>{selected.customer}</strong></div>
+              </div>
+              <Badge tone={tone(selected.status)} dot={selected.status!=='converted'}>{lbl(selected.status)}</Badge>
+            </div>
+            <div style={{ display:'flex', gap:16, marginTop:14, fontSize:12, color:'var(--fg-3)' }}>
+              <div><span style={{ color:'var(--fg-4)' }}>Prepared</span> · {selected.prepared}</div>
+              <div><span style={{ color:'var(--fg-4)' }}>Expires</span> · {selected.expires}</div>
+            </div>
+          </div>
+          <div style={{ padding:20 }}>
+            <div style={{ fontSize:11, letterSpacing:'.08em', textTransform:'uppercase', fontWeight:700, color:'var(--fg-3)', marginBottom:8 }}>Line items</div>
+            {selected.lines.map((l, i) => (
+              <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 30px auto', gap:12, padding:'10px 0', borderBottom:'1px solid var(--slate-100)', alignItems:'flex-start' }}>
+                <div style={{ fontSize:13, lineHeight:1.4 }}>{l.desc}</div>
+                <div className="mono" style={{ fontSize:12, color:'var(--fg-3)', textAlign:'right' }}>×{l.qty}</div>
+                <div className="mono" style={{ fontSize:13, fontWeight:600, textAlign:'right', minWidth:70 }}>${l.total.toLocaleString()}.00</div>
+              </div>
+            ))}
+            <div style={{ display:'flex', justifyContent:'space-between', padding:'14px 0 4px', fontSize:13, color:'var(--fg-2)' }}>
+              <span>Subtotal</span><span className="mono">${selected.amount.toLocaleString()}.00</span>
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13, color:'var(--fg-3)' }}>
+              <span>Tax (FL · est.)</span><span className="mono">$0.00</span>
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', padding:'14px 0 0', borderTop:'1px solid var(--slate-100)', marginTop:8 }}>
+              <span style={{ fontSize:13, fontWeight:600 }}>Total</span>
+              <span className="mono" style={{ fontSize:22, fontWeight:700, fontFamily:'var(--font-display)', color:'var(--navy-900)' }}>${selected.amount.toLocaleString()}.00</span>
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:18, flexWrap:'wrap' }}>
+              {selected.status==='approved'  && <Btn variant="primary" icon="calendar-plus">Convert to Job</Btn>}
+              {selected.status==='draft'     && <Btn variant="primary" icon="send">Send to Customer</Btn>}
+              {selected.status==='sent'      && <Btn variant="primary" icon="refresh-cw">Resend</Btn>}
+              {selected.status==='declined'  && <Btn variant="primary" icon="copy">Duplicate &amp; Revise</Btn>}
+              {selected.status==='converted' && <Btn variant="primary" icon="external-link">View Job</Btn>}
+              <Btn variant="secondary" icon="download">PDF</Btn>
+              <Btn variant="ghost" icon="more-horizontal" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: INVOICES
+   ============================================================ */
+function InvoicesScreen() {
+  const [tab, setTab] = useState('all');
+  const statusTone = s => ({ paid:'success', pending:'info', overdue:'danger' }[s]||'neutral');
+  const statusLbl  = s => ({ paid:'Paid', pending:'Pending', overdue:'Overdue' }[s]||s);
+  const filtered = INVOICES.filter(inv => tab==='all' || inv.status===tab);
+  const outstanding = INVOICES.filter(i=>i.status!=='paid').reduce((s,i)=>s+i.amount,0);
+  const overdue     = INVOICES.filter(i=>i.status==='overdue').reduce((s,i)=>s+i.amount,0);
+  const paid30      = INVOICES.filter(i=>i.status==='paid').reduce((s,i)=>s+i.amount,0);
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div><span className="eyebrow">This period · 7 invoices</span><h1>Invoices</h1></div>
+        <div style={{ display:'flex', gap:8 }}>
+          <Btn variant="secondary" icon="download">Export</Btn>
+          <Btn variant="primary" icon="plus">New Invoice</Btn>
+        </div>
+      </div>
+      <div className="grid-12" style={{ marginBottom:18 }}>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow">Outstanding</div><div className="kpi-value">${outstanding.toLocaleString()}</div><div className="kpi-foot">across {INVOICES.filter(i=>i.status!=='paid').length} invoices</div></div></div>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow" style={{ color:'var(--danger-700)' }}>Overdue</div><div className="kpi-value" style={{ color:'var(--danger-700)' }}>${overdue.toLocaleString()}</div><div className="kpi-foot">2 invoices past due</div></div></div>
+        <div className="col-4"><div className="card kpi"><div className="kpi-eyebrow">Collected this month</div><div className="kpi-value">${paid30.toLocaleString()}</div><div className="kpi-foot"><span className="kpi-delta">3</span> invoices paid</div></div></div>
+      </div>
+      <div className="tabs">
+        {[{id:'all',label:'All',count:INVOICES.length},{id:'overdue',label:'Overdue',count:2},{id:'pending',label:'Pending',count:2},{id:'paid',label:'Paid',count:3}].map(t => (
+          <button key={t.id} className={`tab${tab===t.id?' active':''}`} onClick={() => setTab(t.id)}>
+            {t.label} <span style={{ color:'var(--fg-4)', fontWeight:500, marginLeft:4 }}>{t.count}</span>
+          </button>
+        ))}
+      </div>
+      <Card pad={false}>
+        <table className="table">
+          <thead><tr><th>Invoice</th><th>Customer</th><th>Issued</th><th>Due</th><th>Status</th><th className="t-right">Amount</th><th></th></tr></thead>
+          <tbody>
+            {filtered.map(inv => (
+              <tr key={inv.id}>
+                <td><div className="mono" style={{ fontWeight:600, color:'var(--navy-700)' }}>{inv.id}</div></td>
+                <td><div style={{ display:'flex', alignItems:'center', gap:10 }}><Avatar name={inv.customer} size={26} /><span style={{ fontSize:13, fontWeight:500 }}>{inv.customer}</span></div></td>
+                <td style={{ color:'var(--fg-3)', fontSize:13 }}>{inv.issued}</td>
+                <td style={{ color: inv.status==='overdue' ? 'var(--danger-700)' : 'var(--fg-3)', fontWeight: inv.status==='overdue' ? 600 : 400, fontSize:13 }}>{inv.due}</td>
+                <td><Badge tone={statusTone(inv.status)} dot={inv.status!=='paid'}>{statusLbl(inv.status)}</Badge></td>
+                <td className="t-right mono" style={{ fontWeight:700, color:'var(--navy-900)' }}>${inv.amount.toLocaleString()}.00</td>
+                <td style={{ textAlign:'right' }}>
+                  {inv.status!=='paid' && <Btn variant="accent" size="sm">Send reminder</Btn>}
+                  {inv.status==='paid' && <Btn variant="ghost" size="sm" icon="download" />}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: CREW & PAYROLL
+   ============================================================ */
+function CrewPayrollScreen() {
+  const [selected, setSelected] = useState(CREW_PAYROLL[0]);
+  const totalHours = CREW_PAYROLL.reduce((s,p)=>s+p.hours,0);
+  const totalOT    = CREW_PAYROLL.reduce((s,p)=>s+p.ot,0);
+  const totalGross = CREW_PAYROLL.reduce((s,p)=>s+payrollGross(p),0);
+  const totalJobs  = CREW_PAYROLL.reduce((s,p)=>s+p.jobs,0);
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Pay Period · Jun 1 – Jun 15</span>
+          <h1>Crew &amp; Payroll</h1>
+          <p style={{ color:'var(--fg-3)', marginTop:6, fontSize:14 }}>Bi-weekly · runs in 11 days · 7 active crew</p>
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          <Btn variant="secondary" icon="chevron-left" />
+          <Btn variant="secondary">Current period</Btn>
+          <Btn variant="secondary" icon="chevron-right" />
+          <Btn variant="primary" icon="play-circle">Run Payroll</Btn>
+        </div>
+      </div>
+      <div className="grid-12" style={{ marginBottom:18 }}>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Period gross</div><div className="kpi-value">${Math.round(totalGross).toLocaleString()}</div><div className="kpi-foot">to {CREW_PAYROLL.length} crew</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Hours logged</div><div className="kpi-value">{totalHours.toFixed(1)}</div><div className="kpi-foot">+{totalOT.toFixed(1)}h overtime</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Jobs completed</div><div className="kpi-value">{totalJobs}</div><div className="kpi-foot">avg. {(totalHours/totalJobs).toFixed(1)}h / job</div></div></div>
+        <div className="col-3"><div className="card kpi"><div className="kpi-eyebrow">Status</div><div className="kpi-value" style={{ color:'var(--gold-700)' }}>Mid-period</div><div className="kpi-foot">runs in 11 days</div></div></div>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr', gap:20 }}>
+        <Card pad={false}>
+          <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', gap:12, borderBottom:'1px solid var(--slate-100)' }}>
+            <span style={{ fontFamily:'var(--font-display)', fontSize:17, fontWeight:600 }}>Roster</span>
+            <Badge tone="neutral">{CREW_PAYROLL.length}</Badge>
+            <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
+              <Btn variant="ghost" size="sm" icon="filter">Filter</Btn>
+              <Btn variant="ghost" size="sm" icon="download">Export</Btn>
+            </div>
+          </div>
+          <table className="table">
+            <thead><tr><th>Crew</th><th className="t-right">Hours</th><th className="t-right">Rate</th><th className="t-right">Jobs</th><th className="t-right">Gross</th></tr></thead>
+            <tbody>
+              {CREW_PAYROLL.map(p => {
+                const gross = payrollGross(p);
+                return (
+                  <tr key={p.id} onClick={() => setSelected(p)} style={{ background: selected.id===p.id ? 'var(--gold-50)' : undefined }}>
+                    <td>
+                      <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
+                        <Avatar name={p.name} size={32} />
+                        <div style={{ minWidth:0 }}>
+                          <div style={{ fontWeight:600 }}>{p.name}</div>
+                          <div style={{ fontSize:12, color:'var(--fg-3)', display:'flex', alignItems:'center', gap:6 }}>
+                            {p.role}
+                            {p.status==='pto_pending' && <Badge tone="warning">PTO pending</Badge>}
+                            {p.status==='part_time'   && <Badge tone="neutral">Part-time</Badge>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="t-right mono" style={{ fontWeight:600 }}>
+                      {p.hours.toFixed(1)}
+                      {p.ot>0 && <span style={{ color:'var(--gold-700)', fontSize:11, marginLeft:6, fontWeight:700 }}>+{p.ot}h OT</span>}
+                    </td>
+                    <td className="t-right mono" style={{ color:'var(--fg-3)' }}>${p.rate}/h</td>
+                    <td className="t-right mono">{p.jobs}</td>
+                    <td className="t-right mono" style={{ fontWeight:700, color:'var(--navy-900)' }}>${Math.round(gross).toLocaleString()}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Card>
+        <Card pad={false} style={{ alignSelf:'flex-start' }}>
+          <div style={{ padding:24, borderBottom:'1px solid var(--slate-100)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+              <Avatar name={selected.name} size={56} status="online" />
+              <div>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:700, letterSpacing:'-.01em', lineHeight:1.2 }}>{selected.name}</div>
+                <div style={{ fontSize:13, color:'var(--fg-3)' }}>{selected.role} · ${selected.rate}/hr</div>
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:14 }}>
+              <Btn variant="primary" icon="message-circle">Message</Btn>
+              <Btn variant="secondary" icon="calendar">Schedule</Btn>
+              <Btn variant="ghost" icon="more-horizontal" />
+            </div>
+          </div>
+          <div style={{ padding:20 }}>
+            <div style={{ fontSize:11, letterSpacing:'.08em', textTransform:'uppercase', fontWeight:700, color:'var(--fg-3)', marginBottom:10 }}>This period</div>
+            {[
+              { label:'Regular hours', value:`${Math.max(0, selected.hours-selected.ot).toFixed(1)} h`, sub:`× $${selected.rate}/hr` },
+              ...(selected.ot>0 ? [{ label:'Overtime', value:`${selected.ot.toFixed(1)} h`, sub:`× $${(selected.rate*1.5).toFixed(2)}/hr`, accent:true }] : []),
+              { label:'Jobs completed', value:selected.jobs, sub:`avg. ${(selected.hours/selected.jobs).toFixed(1)}h / job` },
+              { label:'Customer rating', value:'4.9 ★', sub:'last 30 days' },
+            ].map((row,i) => (
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, padding:'10px 0', borderBottom:'1px solid var(--slate-100)' }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight:500 }}>{row.label}</div>
+                  {row.sub && <div style={{ fontSize:11, color:'var(--fg-3)', marginTop:2 }}>{row.sub}</div>}
+                </div>
+                <div className="mono" style={{ fontSize:14, fontWeight:600, color: row.accent ? 'var(--gold-700)' : 'var(--fg-1)', flexShrink:0 }}>{row.value}</div>
+              </div>
+            ))}
+            <div style={{ marginTop:14, padding:16, background:'var(--cream)', borderRadius:14, border:'1px solid var(--gold-100)' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:12 }}>
+                <div>
+                  <div style={{ fontSize:11, letterSpacing:'.08em', textTransform:'uppercase', fontWeight:700, color:'var(--gold-700)' }}>Period gross</div>
+                  <div style={{ fontSize:11, color:'var(--fg-3)', marginTop:2 }}>Jun 1 – Jun 15</div>
+                </div>
+                <div className="mono" style={{ fontSize:28, fontWeight:700, fontFamily:'var(--font-display)', color:'var(--navy-900)', flexShrink:0 }}>
+                  ${Math.round(payrollGross(selected)).toLocaleString()}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop:14, fontSize:12, color:'var(--fg-3)', lineHeight:1.5, display:'flex', gap:6, alignItems:'flex-start' }}>
+              <Icon name="info" size={13} style={{ marginTop:2 }} />
+              Paid via direct deposit Fri, Jun 19. Pay stub will be emailed.
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: REPORTS (stub)
+   ============================================================ */
+function ReportsScreen() {
+  return (
+    <div className="content-narrow">
+      <div className="page-head"><div><span className="eyebrow">Analytics</span><h1>Reports</h1></div></div>
+      <Card style={{ textAlign:'center', padding:80, color:'var(--fg-3)' }}>
+        <Icon name="bar-chart-3" size={40} color="var(--slate-300)" />
+        <p style={{ marginTop:16, fontSize:15 }}>Reports coming in Phase 2.</p>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   SCREEN: SETTINGS (stub)
+   ============================================================ */
+function SettingsScreen() {
+  return (
+    <div className="content-narrow">
+      <div className="page-head">
+        <div><span className="eyebrow">Account</span><h1>Settings</h1></div>
+        <Btn variant="primary" icon="save">Save changes</Btn>
+      </div>
+      <div style={{ display:'grid', gap:20 }}>
+        {[
+          { title:'Business profile', icon:'building-2', fields:[['Business name','Sunshine State Cleaning Co.'],['Website','sunshinestatecleaning.com'],['Phone','(813) 555-0100'],['Time zone','America/New_York']] },
+          { title:'Notifications',    icon:'bell',       fields:[['New job assigned','On'],['Invoice paid','On'],['Overdue invoice','On'],['Crew message','Off']] },
+        ].map(s => (
+          <Card key={s.title} pad={false}>
+            <CardHead title={s.title} icon={s.icon} />
+            <div style={{ padding:24, display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              {s.fields.map(([label, val]) => (
+                <div key={label} className="field">
+                  <label>{label}</label>
+                  <input className="input" defaultValue={val} />
+                </div>
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   JOB DRAWER
+   ============================================================ */
+function JobDrawer({ job, onClose }) {
+  if (!job) return null;
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="drawer">
+        <div className="drawer-head">
+          <button onClick={onClose} className="btn btn-icon btn-ghost"><Icon name="x" size={18} /></button>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div className="mono" style={{ fontSize:12, color:'var(--fg-3)' }}>Job #{job.id}</div>
+            <div style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:700, letterSpacing:'-.01em', lineHeight:1.2, marginTop:2 }}>{job.customer}</div>
+          </div>
+          <JobStatus status={job.status} />
+        </div>
+        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+          <Card>
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              {[
+                { icon:'spray-can',   label:'Service',  value:job.service },
+                { icon:'clock',       label:'Time',     value:`${job.time} · ${job.duration}` },
+                { icon:'dollar-sign', label:'Amount',   value:`$${job.amount.toFixed(2)}`, mono:true },
+              ].map(row => (
+                <div key={row.label} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                  <Icon name={row.icon} size={16} color="var(--navy-700)" style={{ marginTop:2 }} />
+                  <div>
+                    <div style={{ fontSize:11, letterSpacing:'.06em', textTransform:'uppercase', fontWeight:600, color:'var(--fg-3)' }}>{row.label}</div>
+                    <div className={row.mono?'mono':''} style={{ fontSize:14, fontWeight:600, marginTop:2 }}>{row.value}</div>
+                  </div>
+                </div>
+              ))}
+              {job.crew.length > 0 && (
+                <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                  <Icon name="users" size={16} color="var(--navy-700)" style={{ marginTop:6 }} />
+                  <div>
+                    <div style={{ fontSize:11, letterSpacing:'.06em', textTransform:'uppercase', fontWeight:600, color:'var(--fg-3)', marginBottom:8 }}>Crew</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {job.crew.map(name => (
+                        <div key={name} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                          <Avatar name={name} size={28} />
+                          <span style={{ fontSize:13, fontWeight:500 }}>{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            {job.status === 'scheduled'   && <Btn variant="primary"   icon="play-circle">Start job</Btn>}
+            {job.status === 'in_progress' && <Btn variant="accent"    icon="check-circle">Mark complete</Btn>}
+            {job.status === 'completed'   && <Btn variant="primary"   icon="file-text">Create invoice</Btn>}
+            <Btn variant="secondary" icon="edit-3">Edit</Btn>
+            <Btn variant="danger"    icon="trash-2">Cancel</Btn>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('sam@sunshinestate.com');
+  const [pw, setPw] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  return (
+    <div className="login-wrap">
+      <div className="login-left">
+        <div style={{ position:'relative' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:48 }}>
+            <div style={{ width:44, height:44, borderRadius:14, background:'var(--gold-500)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="21" r="7" fill="#142555"/>
+                <g stroke="#142555" strokeWidth="2.2" strokeLinecap="round">
+                  <line x1="16" y1="5"  x2="16" y2="9"/>
+                  <line x1="5"  y1="21" x2="9"  y2="21"/>
+                  <line x1="23" y1="21" x2="27" y2="21"/>
+                  <line x1="8"  y1="12" x2="11" y2="15"/>
+                  <line x1="24" y1="12" x2="21" y2="15"/>
+                </g>
+              </svg>
+            </div>
+            <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:18, color:'white', lineHeight:1.1 }}>
+              Sunshine State<br/><span style={{ fontSize:12, fontFamily:'var(--font-sans)', fontWeight:500, color:'var(--gold-300)', letterSpacing:'.06em', textTransform:'uppercase' }}>Cleaning · CRM</span>
+            </div>
+          </div>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:40, fontWeight:700, color:'white', lineHeight:1.1, letterSpacing:'-.02em', maxWidth:360 }}>
+            Run your cleaning business — on autopilot.
+          </div>
+          <p style={{ marginTop:20, fontSize:15, color:'rgba(255,255,255,.6)', lineHeight:1.6, maxWidth:340 }}>
+            Scheduling, CRM, invoicing, crew payroll, and AI follow-ups in one calm, beautifully designed workspace.
+          </p>
+        </div>
+        <div style={{ position:'relative' }}>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:20, color:'rgba(255,255,255,.2)', marginBottom:12 }}>"</div>
+          <blockquote style={{ fontFamily:'var(--font-display)', fontSize:18, color:'rgba(255,255,255,.9)', lineHeight:1.45, marginBottom:20 }}>
+            We replaced four tools with Sunshine. Our crews ship 40% more jobs.
+          </blockquote>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <Avatar name="Marcus Reyes" size={40} color="#E5B143" />
+            <div>
+              <div style={{ fontSize:14, fontWeight:600, color:'white' }}>Marcus Reyes</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,.5)' }}>Reyes Pressure Washing · Tampa</div>
+            </div>
+            <div style={{ marginLeft:'auto', display:'flex', gap:2 }}>
+              {[...Array(5)].map((_,i) => <Icon key={i} name="star" size={14} color="var(--gold-500)" />)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="login-right">
+        <div className="login-form">
+          <div className="login-logo-mark">
+            <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="21" r="7" fill="white"/>
+              <g stroke="white" strokeWidth="2.2" strokeLinecap="round">
+                <line x1="16" y1="5"  x2="16" y2="9"/>
+                <line x1="5"  y1="21" x2="9"  y2="21"/>
+                <line x1="23" y1="21" x2="27" y2="21"/>
+                <line x1="8"  y1="12" x2="11" y2="15"/>
+                <line x1="24" y1="12" x2="21" y2="15"/>
+              </g>
+            </svg>
+          </div>
+          <h2 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:700, letterSpacing:'-.02em', lineHeight:1.1, marginBottom:6 }}>Welcome back</h2>
+          <p style={{ fontSize:14, color:'var(--fg-3)', marginBottom:32 }}>Sign in to your Sunshine workspace.</p>
+
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div className="field">
+              <label>Email</label>
+              <input className="input" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" />
+            </div>
+            <div className="field">
+              <div style={{ display:'flex', justifyContent:'space-between' }}>
+                <label>Password</label>
+                <button onClick={() => {}} style={{ fontSize:12, color:'var(--navy-500)', background:'none', border:'none', cursor:'pointer', padding:0 }}>Forgot password?</button>
+              </div>
+              <div style={{ position:'relative' }}>
+                <input className="input" type={showPw?'text':'password'} value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" style={{ paddingRight:44 }} />
+                <button onClick={() => setShowPw(v=>!v)} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--fg-3)' }}>
+                  <Icon name={showPw?'eye-off':'eye'} size={16} />
+                </button>
+              </div>
+            </div>
+            <button className="btn btn-primary" style={{ width:'100%', justifyContent:'center', marginTop:4, fontSize:15, padding:'13px 24px' }} onClick={onLogin}>
+              Sign in
+              <Icon name="arrow-right" size={16} />
+            </button>
+          </div>
+
+          <p style={{ marginTop:28, textAlign:'center', fontSize:13, color:'var(--fg-3)' }}>
+            New to Sunshine? <a href="#" style={{ color:'var(--navy-800)', fontWeight:600, textDecoration:'none' }}>Start free trial →</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+const SCREEN_TITLES = {
+  dashboard: 'Dashboard',
+  customers: 'Customers',
+  estimates: 'Estimates',
+  invoices:  'Invoices',
+  crew:      'Crew & Payroll',
+  reports:   'Reports',
+  settings:  'Settings',
+};
+
+function App() {
+  const [screen, setScreen] = useState('login');
+  const [job, setJob] = useState(null);
+
+  if (screen === 'login') {
+    return <LoginScreen onLogin={() => setScreen('dashboard')} />;
+  }
+
+  const renderScreen = () => {
+    switch (screen) {
+      case 'dashboard': return <DashboardScreen onOpenJob={j => setJob(j)} />;
+      case 'customers': return <CustomersScreen />;
+      case 'estimates': return <EstimatesScreen />;
+      case 'invoices':  return <InvoicesScreen />;
+      case 'crew':      return <CrewPayrollScreen />;
+      case 'reports':   return <ReportsScreen />;
+      case 'settings':  return <SettingsScreen />;
+      default:          return <DashboardScreen onOpenJob={j => setJob(j)} />;
+    }
+  };
+
+  const topActions = {
+    dashboard: <Btn variant="primary" icon="plus" size="sm">New Job</Btn>,
+    invoices:  <Btn variant="primary" icon="plus" size="sm">New Invoice</Btn>,
+    estimates: <Btn variant="primary" icon="plus" size="sm">New Estimate</Btn>,
+  };
+
+  return (
+    <div className="app">
+      <Sidebar current={screen} onNav={id => { setScreen(id); setJob(null); }} />
+      <div className="main">
+        <TopBar title={SCREEN_TITLES[screen] || 'CRM'} action={topActions[screen]} />
+        <div className="content">
+          {renderScreen()}
+        </div>
+      </div>
+      {job && <JobDrawer job={job} onClose={() => setJob(null)} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+</script>
+</body>
+</html>
