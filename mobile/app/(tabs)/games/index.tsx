@@ -9,7 +9,15 @@ const GAMES = [
   { path: 'keno',      emoji: '🎱', name: 'Keno',            subtitle: 'Keno',        desc: 'Pick up to 10 numbers · 20 drawn · Big wins',  rtp: '92%',   hot: true  },
   { path: 'crash',     emoji: '🚀', name: 'Crash',           subtitle: 'Crash',       desc: 'Cash out before it crashes · Multiplier grows', rtp: '97%',   hot: true  },
   { path: 'baccarat',  emoji: '🎴', name: 'Baccarat',        subtitle: 'Baccarat',    desc: 'Player vs Banker · Tie pays 8:1',              rtp: '98.9%', hot: false },
-  { path: 'mines',     emoji: '💣', name: 'Mines',           subtitle: 'Mines',       desc: 'Reveal gems · Avoid mines · Cash out anytime', rtp: '97%',   hot: false },
+  { path: 'mines',       emoji: '💣', name: 'Mines',          subtitle: 'Mines',        desc: 'Reveal gems · Avoid mines · Cash out anytime',  rtp: '97%',   hot: false },
+  { path: 'plinko',      emoji: '🎱', name: 'Plinko',         subtitle: 'Plinko',       desc: 'Drop the ball · Bounce through pegs',            rtp: '97.7%', hot: true  },
+  { path: 'dice',        emoji: '🎲', name: 'Dice',           subtitle: 'Dice',         desc: 'Roll 1–100 · Over/Under bets',                   rtp: '97%',   hot: false },
+  { path: 'wheel',       emoji: '🎡', name: 'Fortune Wheel',  subtitle: 'Wheel',        desc: 'Spin to win · 2× 5× 10×',                       rtp: '96.7%', hot: true  },
+  { path: 'hilo',        emoji: '🃏', name: 'Hi-Lo',          subtitle: 'Hi-Lo',        desc: 'Higher or lower · Multiplier grows',             rtp: '97%',   hot: false },
+  { path: 'dragon-tiger',emoji: '🐉', name: 'Dragon Tiger',   subtitle: 'Dragon Tiger', desc: 'One card each · Higher wins',                    rtp: '94.1%', hot: false },
+  { path: 'limbo',       emoji: '🚀', name: 'Limbo',          subtitle: 'Limbo',        desc: 'Set target · Hit it to win',                     rtp: '97%',   hot: true  },
+  { path: 'war',         emoji: '⚔️', name: 'War',            subtitle: 'War',          desc: 'High card wins · Ace beats all',                 rtp: '96.3%', hot: false },
+  { path: 'coinflip',    emoji: '🪙', name: 'Coin Flip',      subtitle: 'Coin Flip',    desc: 'Heads or Tails · Streak multiplier',             rtp: '97%',   hot: false },
 ];
 
 export default function GamesListScreen() {
