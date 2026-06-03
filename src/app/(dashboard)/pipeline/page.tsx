@@ -27,7 +27,7 @@ export default async function PipelinePage() {
           </p>
         </div>
       ) : (
-        <JobPipeline initialJobs={jobs as Parameters<typeof JobPipeline>[0]["initialJobs"]} />
+        <JobPipeline initialJobs={jobs} />
       )}
     </div>
   );

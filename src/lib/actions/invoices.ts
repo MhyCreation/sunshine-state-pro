@@ -4,6 +4,19 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+export type Invoice = {
+  id: string;
+  invoice_number: string;
+  status: string;
+  total: number | null;
+  amount_paid: number | null;
+  due_date: string | null;
+  sent_at: string | null;
+  paid_at: string | null;
+  created_at: string;
+  customers: { id: string; full_name: string; email: string | null } | null;
+};
+
 async function getBusiness() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -30,7 +43,7 @@ export async function getInvoices() {
     .eq("business_id", business_id)
     .order("created_at", { ascending: false });
 
-  return data ?? [];
+  return (data ?? []) as unknown as Invoice[];
 }
 
 const createInvoiceSchema = z.object({

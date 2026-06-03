@@ -106,7 +106,7 @@ export default async function SchedulePage({
       </header>
 
       {view === "calendar" ? (
-        <WeekCalendar jobs={jobs as Parameters<typeof WeekCalendar>[0]["jobs"]} />
+        <WeekCalendar jobs={jobs} />
       ) : (
         <>
           <div className="flex gap-2 mb-6 flex-wrap">
@@ -162,7 +162,6 @@ export default async function SchedulePage({
                     <div className="space-y-2">
                       {grouped[dateKey].map((job) => {
                         const style = STATUS_STYLES[job.status] ?? STATUS_STYLES.scheduled;
-                        // @ts-expect-error supabase join typing
                         const customer = job.customers;
                         return (
                           <div

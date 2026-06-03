@@ -4,6 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+export type Job = {
+  id: string;
+  title: string;
+  status: "quoted" | "scheduled" | "in_progress" | "completed" | "cancelled" | "invoiced";
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  address: string | null;
+  estimated_price: number | null;
+  final_price: number | null;
+  customers: { id: string; full_name: string; phone: string | null } | null;
+};
+
 async function getBusiness() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -35,7 +47,7 @@ export async function getJobs(opts?: { from?: string; to?: string; status?: stri
   if (opts?.status) query = query.eq("status", opts.status);
 
   const { data } = await query;
-  return data ?? [];
+  return (data ?? []) as unknown as Job[];
 }
 
 const createJobSchema = z.object({
