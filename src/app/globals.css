@@ -3,23 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --border: 220 13% 91%;
-}
-
-.dark {
-  --background: 220 65% 11%;     /* navy 800 */
-  --foreground: 0 0% 100%;
-  --muted: 220 50% 18%;
-  --muted-foreground: 220 10% 70%;
-  --card: 220 55% 14%;
-  --card-foreground: 0 0% 100%;
-  --border: 220 30% 25%;
+  --background: 240 20% 6%;
+  --foreground: 0 0% 96%;
+  --muted: 240 15% 14%;
+  --muted-foreground: 240 8% 55%;
+  --card: 240 18% 10%;
+  --card-foreground: 0 0% 96%;
+  --border: 240 15% 18%;
 }
 
 body {
@@ -28,24 +18,80 @@ body {
   font-feature-settings: "ss01", "cv11";
 }
 
-/* Glass panel utility */
+/* Glass panel */
 .glass {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 0.5px solid rgba(245, 197, 71, 0.18);
+  border: 0.5px solid rgba(245, 197, 71, 0.12);
 }
 
-/* Subtle grid pattern for marketing hero */
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
+/* Casino felt table surface */
+.felt {
+  background: linear-gradient(135deg, #0F3222 0%, #154530 50%, #0F3222 100%);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Gold text glow */
+.text-glow-gold {
+  text-shadow: 0 0 16px rgba(245, 197, 71, 0.6);
+}
+
+/* Subtle dot grid for backgrounds */
+.bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Card shine effect */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+  pointer-events: none;
+}
+
+/* Slot reel */
+.slot-reel {
+  overflow: hidden;
+  height: 216px; /* 3 rows × 72px each */
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+::-webkit-scrollbar-thumb:hover { background: rgba(245,197,71,0.3); }
+
+/* Playing card styles */
+.playing-card {
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.playing-card:hover {
+  transform: translateY(-4px);
+}
+.playing-card.held {
+  transform: translateY(-12px);
+  box-shadow: 0 0 16px rgba(245,197,71,0.5);
+}
+
+/* Win flash */
+@keyframes winFlash {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(34, 197, 94, 0.15); }
+}
+.win-flash {
+  animation: winFlash 0.4s ease 3;
+}
+
+/* Roulette wheel spin */
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

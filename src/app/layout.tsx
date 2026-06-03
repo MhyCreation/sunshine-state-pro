@@ -11,16 +11,16 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Sunshine State Pro — Run your service business on autopilot",
+  title: "SunshineSpins — Free Sweepstakes Casino",
   description:
-    "The operating system for cleaners, detailers, landscapers, and contractors. AI-powered booking, CRM, invoicing, and crew management.",
+    "Play free sweepstakes slots, blackjack, poker & roulette. Win Sweeps Coins and redeem for prizes. No purchase necessary.",
   icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable} dark`}>
+      <body className="font-sans antialiased bg-casino-900 text-white">{children}</body>
     </html>
   );
 }
